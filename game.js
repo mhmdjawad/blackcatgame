@@ -6,6 +6,7 @@ const SOUNDVOLUME = 0.15;
 const floor = Math.floor;
 var songBgm = {songData: [{ i: [0, 0, 140, 0, 0, 0, 140, 0, 0, 255, 158, 158, 158, 0, 0, 0, 0, 51, 2, 1, 2, 58, 239, 0, 32, 88, 1, 157, 2 ],p: [1,1,1,1],c: [{n: [161,,,,,,,,,,,,,,,,163,,,,,,,,159],f: []}]},{ i: [0, 91, 128, 0, 0, 95, 128, 12, 0, 0, 12, 0, 72, 0, 0, 0, 0, 0, 0, 0, 2, 255, 0, 0, 32, 83, 3, 130, 4 ],p: [1,1,2,1],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144],f: []},{n: [156,,163,,161,,159,,158,,159,,158,,156,,156,,163,,161,,159,,158,,159,,158,,168],f: []}]},{ i: [0, 16, 133, 0, 0, 28, 126, 12, 0, 0, 2, 0, 60, 0, 0, 0, 0, 0, 0, 0, 2, 91, 0, 0, 32, 47, 3, 157, 2 ],p: [1,2,1,2],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144],f: []},{n: [168,,175,,173,,171,,170,,171,,170,,168,,168,,175,,173,,171,,170,,171,,170,,168],f: []}]},{ i: [0, 255, 116, 79, 0, 255, 116, 0, 83, 0, 4, 6, 69, 52, 0, 0, 0, 0, 0, 0, 2, 14, 0, 0, 32, 0, 0, 0, 0 ],p: [1,1,1,1],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144,,,159,,,,159,,,,159,,,,,,,,,,,,159,,159],f: []}]},],rowLen: 8269,   patternLen: 32,  endPattern: 3,  numChannels: 4  };
 // const EMOJI = G.getEmojiSprite(`💓`,64,1.3);
+// const EMOJI = G.getEmojiSprite(`△`,64,1.3);
 class SpriteEngine{
     constructor(img){
         var imgCanvas = G.imgToCanvas(img);
@@ -17,6 +18,7 @@ class SpriteEngine{
         });
         var cvs = G.colorsMatrixToSprite(mat,1);
         this.black_cat = G.crop(cvs,0,0,32,32);
+        this.red_witch = G.crop(cvs,32,0,32,32);
         this.mapBlueprint = G.crop(cvs,0,64,64,64);
     }
     AnimateCat(){
@@ -59,7 +61,6 @@ class Cat{
     constructor(game){
         this.animations = game.spriteEngine.AnimateCat(); 
     }
-
     Idle(){
         return this.animations[0];
     }
@@ -820,33 +821,6 @@ class Point{
         this.y = this.y + vy;
     }
 }
-class Heart extends E{
-    constructor(game,pos){
-        super(game,pos);
-        this.sprite = G.getEmojiSprite(`💓`,CELLSIZE*0.8,1.1);
-        this.animations = [
-            G.getEmojiSprite(`💓`,CELLSIZE*0.8,1.1),
-            G.getEmojiSprite(`💓`,CELLSIZE*0.7,1.1),
-            G.getEmojiSprite(`💓`,CELLSIZE*0.6,1.1),
-            G.getEmojiSprite(`💓`,CELLSIZE*0.5,1.1),
-            G.getEmojiSprite(`💓`,CELLSIZE*0.6,1.1),
-            G.getEmojiSprite(`💓`,CELLSIZE*0.7,1.1),
-        ];
-        this.currentAnimation = 0;
-        this.currentAnimationFrames = 10;
-    }
-    update(t){
-        this.currentAnimation++;
-        this.sprite = this.animations[floor(this.currentAnimation/this.currentAnimationFrames)],this.rotation;
-        if(this.currentAnimation > (this.animations.length-1) * this.currentAnimationFrames){
-            this.currentAnimation = 0;
-        }
-        if(this.game && this.game.player && this.pos.distance(this.game.player.pos) < CELLSIZE/2){
-            this.game.player.life += 20;
-            this.game.objects = this.game.objects.filter(x=>x!=this);
-        }
-    }
-}
 class GameEnginge{
     constructor(c){
         this.config = {
@@ -990,15 +964,77 @@ class Player{
         }
     }
 }
+class ChatCard{
+    constructor(){
+        var canvas = G.makeCanvas(300,300);
+        var ctx = canvas.ctx;
+
+
+        
+
+        return canvas;
+    }
+}
+class Minigame1{
+    constructor(game){
+        this.game = game;
+        this.game.resetBody();
+        this.body = game.body;
+        this.canvasDim = game.canvasDim;
+        this.cat = new Cat(game);
+        this.catSprite = this.cat.Idle();
+        this.canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
+        this.ctx = this.canvas.ctx;
+        this.body.append(this.canvas);
+        console.log('mg1');
+        this.paused = false;
+        this.sceneEnded = false;
+        this.s1 = G.getTextSprite(`⟐⟑⟇⟒⟓⟔⟁`,14,'#ffffff',1.3);
+
+        var wizard = G.getEmojiSprite('',64,1.3);
+        var chatcard = new ChatCard(wizard,'uhm... hello?');
+
+        this.chat = [
+            'uhmmm.....',
+            'uhmmm..... hello ?',
+            '',
+            '',
+        ];
+        this.currentchat = 0;
+
+
+
+
+
+        this.update(0);
+        
+    }
+    update(t){
+        if(this.paused) return;
+        this.canvas.fill('#aaa');
+        // this.ctx.fillStyle = '#fff';
+        this.ctx.fillText(t,10,10);
+        // for(let i = 0 ; i < 130; i++){
+        //     this.ctx.drawImage(this.s1,
+        //         G.randInt(-64,this.canvas.w),
+        //         G.randInt(-64,this.canvas.h)
+        //     );
+        // }
+        // this.ctx.drawImage(this.catSprite, this.canvas.w/2,this.canvas.h/2);
+        requestAnimationFrame(newtime=>this.update(newtime));
+    }
+}
 class Game extends GameEnginge{
     constructor(c){
         super(c);
-        this.canvasDim = {w :GameDimC*CELLSIZE,h :GameDimR*CELLSIZE};
-        G.loadImage('blackcat.gif?'+Math.random(),img=>{
+        // this.canvasDim = {w :GameDimC*CELLSIZE,h :GameDimR*CELLSIZE};
+        this.canvasDim = {w :600 , h :600};
+        G.loadImage('sh1.gif?'+Math.random(),img=>{
             this.cellSize = CELLSIZE;
             this.spriteEngine = new SpriteEngine(img);
             this.objects = [];
-            this.mainScene();
+            this.scene = new Minigame1(this);
+            // this.mainScene();
         })
         return;
     }
