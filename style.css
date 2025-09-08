@@ -1,14 +1,29 @@
 body, html {
     height: 100%;
     margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* display: flex; */
+    /* align-items: center; */
+    /* justify-content: center; */
     background:#9df6b9;
     --col-1- :#3f6ec2;
     --col-3- :#2dd636;
     --col-4- :#6d6c6c;
+    --col-5- :#e7e570;
+    --col-6- :#c3c139;
+    --col-6- :#7a7818;
     font-family:'Jazz LET, fantasy';
+    font-family:'';
+}
+.body{
+    width:100%;
+}
+.body canvas{
+    width:100%;
+    max-width:600px;
+}
+.menuDialog{
+    width:100% !important;
+    max-width:600px;
 }
 .closebtn{
     position:absolute;

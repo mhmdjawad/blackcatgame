@@ -19,7 +19,7 @@ class SpriteEngine{
         var cvs = G.colorsMatrixToSprite(mat,1);
         this.black_cat = G.crop(cvs,0,0,32,32);
         this.red_witch = G.crop(cvs,32,0,32,32);
-        this.mapBlueprint = G.crop(cvs,0,64,64,64);
+        this.mapBlueprint = G.crop(cvs,0,32,64,64);
     }
     AnimateCat(){
         var mainSprite = G.imgToCanvas(this.black_cat);
@@ -57,6 +57,363 @@ class SpriteEngine{
         return sprites;
     }
 }
+class Pathfinder {
+    constructor(maze) {
+        this.maze = maze;
+        this.rows = maze.length;
+        this.cols = maze[0].length;
+    }
+    findPath(startRow, startCol, endRow, endCol) {
+        startRow = Math.floor(startRow);
+        startCol = Math.floor(startCol);
+        endRow = Math.floor(endRow);
+        endCol = Math.floor(endCol);
+
+        const openSet = [];
+        const closedSet = new Set();
+        const cameFrom = {};
+
+        const gScore = new Array(this.rows).fill(null).map(() => new Array(this.cols).fill(Infinity));
+        gScore[startRow][startCol] = 0;
+
+        const fScore = new Array(this.rows).fill(null).map(() => new Array(this.cols).fill(Infinity));
+        fScore[startRow][startCol] = this.heuristic(startRow, startCol, endRow, endCol);
+
+        openSet.push([startRow, startCol]);
+
+        while (openSet.length > 0) {
+            const current = this.findLowestFScore(openSet, fScore);
+            const [currentRow, currentCol] = current;
+
+            if (currentRow === endRow && currentCol === endCol) {
+                return this.reconstructPath(cameFrom, current);
+            }
+
+            openSet.splice(openSet.indexOf(current), 1);
+            closedSet.add(`${currentRow}-${currentCol}`);
+
+            const neighbors = this.getNeighbors(currentRow, currentCol);
+            for (const neighbor of neighbors) {
+                const [neighborRow, neighborCol] = neighbor;
+
+                if (closedSet.has(`${neighborRow}-${neighborCol}`) || this.maze[neighborRow][neighborCol]) {
+                    continue;
+                }
+
+                const tentativeGScore = gScore[currentRow][currentCol] + 1;
+
+                if (tentativeGScore < gScore[neighborRow][neighborCol]) {
+                    cameFrom[`${neighborRow}-${neighborCol}`] = current;
+                    gScore[neighborRow][neighborCol] = tentativeGScore;
+                    fScore[neighborRow][neighborCol] = tentativeGScore + this.heuristic(neighborRow, neighborCol, endRow, endCol);
+
+                    if (!openSet.includes(neighbor)) {
+                        openSet.push(neighbor);
+                    }
+                }
+            }
+        }
+
+        return null; // No path found
+    }
+    heuristic(row1, col1, row2, col2) {
+        return Math.abs(row1 - row2) + Math.abs(col1 - col2);
+    }
+    findLowestFScore(nodes, fScore) {
+        let lowestNode = nodes[0];
+        let lowestFScore = fScore[lowestNode[0]][lowestNode[1]];
+
+        for (const node of nodes) {
+            const [row, col] = node;
+            if (fScore[row][col] < lowestFScore) {
+                lowestNode = node;
+                lowestFScore = fScore[row][col];
+            }
+        }
+
+        return lowestNode;
+    }
+    getNeighbors(row, col) {
+        const neighbors = [];
+        if (row > 0) neighbors.push([row - 1, col]);
+        if (row < this.rows - 1) neighbors.push([row + 1, col]);
+        if (col > 0) neighbors.push([row, col - 1]);
+        if (col < this.cols - 1) neighbors.push([row, col + 1]);
+        return neighbors;
+    }
+    reconstructPath(cameFrom, current) {
+        const path = [current];
+
+        while (cameFrom.hasOwnProperty(`${current[0]}-${current[1]}`)) {
+            current = cameFrom[`${current[0]}-${current[1]}`];
+            path.unshift(current);
+        }
+
+        return path;
+    }
+}
+class GameMap{
+    constructor(game){
+        this.game = game;
+        this.cw = this.game.canvasDim.w;
+        this.ch = this.game.canvasDim.h;
+
+        var dirt = this.GenDirtTile(CELLSIZE,CELLSIZE);
+        var walkway = this.GenWalkwayTile(CELLSIZE,CELLSIZE);
+        var water = this.GenWaterTile(CELLSIZE,CELLSIZE);
+        var tree1 = G.getEmojiSprite(`🌳`,CELLSIZE,1.3);
+        var house1 = G.getEmojiSprite(`🏡`,CELLSIZE*2,1.3);
+        var house2 = G.getEmojiSprite(`🏠`,CELLSIZE*2,1.3);
+        var church = G.getEmojiSprite(`⛪`,CELLSIZE*3,1.3);
+        var townhall = G.getEmojiSprite(`🏫`,CELLSIZE*3,1.3);
+        var castle = G.getEmojiSprite(`🏰`,CELLSIZE*4,1.3);
+        var store = G.getEmojiSprite(`🏪`,CELLSIZE*3,1.3);
+        var tent = G.getEmojiSprite(`⛺`,CELLSIZE*3,1.3);
+        var stoneBrickWall = G.brickPattern('#afafaf','#6d6c6c',4);
+
+        this.colordict = [
+            {c:'#99e550',o: 0, s: undefined},
+            {c:'#639bff',o: 1, s: water},
+            {c:'#6abe30',o: 1, s: tree1},
+            {c:'#76428a',o: 1, s: house1},
+            {c:'#d77bba',o: 1, s: house2},
+            {c:'#d9a066',o: 0, s: dirt},
+            {c:'#767676',o: 1, s: stoneBrickWall},
+            {c:'#df7126',o: 1, s: castle},
+            {c:'#8f974a',o: 1, s: church},
+            {c:'#fbf236',o: 1, s: townhall},
+            {c:'#ac3232',o: 1, s: store},
+            {c:'#663931',o: 0, s: walkway},
+            {c:'#524b24',o: 1, s: tent},
+        ];
+        this.blueprintasmatrix = G.getColorMatrix(game.spriteEngine.mapBlueprint,(r)=>{
+            if(r == '') return null;
+            return r;
+        });
+        this.map = this.RenderMap(game.spriteEngine.mapBlueprint);
+        this.pathfindermatrix = this.getPathfindMatrix(this.blueprintasmatrix,this.colordict);
+        this.pathFinder = new Pathfinder(this.pathfindermatrix);
+    }
+    getMap(){
+        return G.imgToCanvas(this.map);
+    }
+    cropMap(sx,sy,w,h){ 
+        return G.crop(this.map,
+            sx,
+            sy,
+            w,
+            h
+        );
+
+    }
+    draw(ctx,px,py){
+        let buffer = this.map;
+        let sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight;
+        sx=sy=sWidth=sHeight=dx=dy=dWidth=dHeight = 0;
+        let edge = {
+            x : px - (this.cw / 2),
+            y : py - (this.ch / 2),
+        }
+        sx = edge.x;
+        sy = edge.y;
+        if(sx <= 0) {
+            sx = 0;
+            px = sx + this.cw / 2;
+        }
+        if(sy <= 0) {
+            sy = 0;
+            py = sy + this.ch/2;
+        }
+        if(sx + this.w > buffer.width){
+            sx = buffer.width - this.cw;
+            px = sx + this.cw / 2;
+        }
+        if(sy + this.h > buffer.height){
+            sy = buffer.height - this.ch;
+            py = sy + this.ch/2;
+        }
+        dx = 0;
+        dy = 0;
+        sWidth  = dWidth = this.w;
+        sHeight = dHeight = this.h;
+        ctx.drawImage(buffer, 
+            sx, 
+            sy, 
+            sWidth, 
+            sHeight, 
+            dx, 
+            dy, 
+            dWidth, 
+            dHeight);
+    }
+    GenWaterTile(w =64, h = 64){
+        const canvas = G.makeCanvas(w, h);
+        const ctx = canvas.ctx;
+        ctx.fillStyle = "#639bff";
+        ctx.fillRect(0, 0, w, h);
+        for (let i = 0; i < w+h; i++) {
+            const x = G.randInt(0, w);
+            const y = G.randInt(0, h);
+            const r = G.randInt(2, 6);
+            ctx.globalAlpha = G.rand(0.15, 0.35);
+            ctx.fillStyle = "#a3d8ff";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    GenDirtTile(w =64, h = 64) {
+        const canvas = G.makeCanvas(w, h);
+        const ctx = canvas.ctx;
+        ctx.fillStyle = "#a67c52";
+        ctx.fillRect(0, 0, w, h);
+        for (let i = 0; i < w+h; i++) {
+            const x = G.randInt(0, w);
+            const y = G.randInt(0, h);
+            const r = G.randInt(2, 5);
+            ctx.globalAlpha = G.rand(0.15, 0.35);
+            ctx.fillStyle = G.rand() > 0.5 ? "#c2b280" : "#7c5c36";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    GenGrassTile(w =64, h = 64) {
+        const canvas = G.makeCanvas(w, h);
+        const ctx = canvas.ctx;
+        // Base grass color
+        ctx.fillStyle = "#4caf50";
+        ctx.fillRect(0, 0, w, h);
+        // Add random spots for texture
+        for (let i = 0; i < w+h; i++) {
+            const x = G.randInt(0, w);
+            const y = G.randInt(0, h);
+            const r = G.randInt(2, 5);
+            ctx.globalAlpha = G.rand(0.18, 0.38);
+            ctx.fillStyle = G.rand() > 0.5 ? "#81c784" : "#388e3c";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    GenWalkwayTile(w =64, h = 64) {
+        const canvas = G.makeCanvas(w, h);
+        const ctx = canvas.ctx;
+        // Base walkway color
+        ctx.fillStyle = "#b0a99f";
+        ctx.fillRect(0, 0, w, h);
+        const brickW = 16, brickH = 16;
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 4; col++) {
+                // Offset every other row for a brick pattern
+                let x = col * brickW + (row % 2 === 1 ? brickW / 2 : 0);
+                if (x + brickW > w) continue; // Avoid overflow
+                let y = row * brickH;
+                ctx.fillStyle = G.rand() > 0.5 ? "#d6d2c4" : "#a59e91";
+                ctx.fillRect(x, y, brickW - 2, brickH - 2);
+                ctx.strokeStyle = "#8d867a";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, y, brickW - 2, brickH - 2);
+            }
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    GenFlowerGarden(w = 64,h = 64, density = 8){
+        var sprites = [
+            G.getEmojiSprite("🌹", 12,1.3),
+            G.getEmojiSprite("🌷", 12,1.3),
+            G.getEmojiSprite("🌻", 12,1.3),
+            G.getEmojiSprite("🌼",12,1.3),
+            G.getEmojiSprite("🌱",12,1.3),
+        ];
+        const canvas = G.makeCanvas(w, h);
+        var ctx = canvas.ctx;
+        var grass = this.GenGrassTile(w,h);
+        ctx.fillStyle = "#4caf50";
+        ctx.drawImage(grass,0,0);
+        for (let i = 0; i < density; i++) {
+            const x = G.randInt(0, w-12);
+            const y = G.randInt(0, h-12);
+            var randSprite = sprites[G.randInt(0,sprites.length)];
+            ctx.drawImage(randSprite,x,y);
+        }
+        return canvas;
+    }
+    RenderMap(blueprint){
+        const MAPSIZE = {w:64,h:64};
+        this.collisionMat = [];
+        
+        
+        var gardenFullCanvas = this.GenFlowerGarden(MAPSIZE.w*CELLSIZE,MAPSIZE.h*CELLSIZE,CELLSIZE*CELLSIZE);
+        var colortocanvasdic = {};
+        this.colordict.map(x=> colortocanvasdic[x.c] = x.s); 
+        var mat = G.getColorMatrix(blueprint,(r)=>{
+            if(r == '') return null;
+            return r;
+        });
+        var buffer = G.makeCanvas(MAPSIZE.w*CELLSIZE,MAPSIZE.h*CELLSIZE);
+        var ctx = buffer.ctx;
+        ctx.drawImage(gardenFullCanvas,0,0);
+        for(let i = 0 ; i < 64; i++){
+            for(let j = 0 ; j < 64 ;j++){
+                var col = mat[j][i];
+                var spritetodraw = colortocanvasdic[col];
+                if(spritetodraw!=undefined){
+                    ctx.drawImage(spritetodraw,i*CELLSIZE,j*CELLSIZE);
+                }
+            }
+        }
+        return buffer;
+    }
+    getPathfindMatrix(colorMatrix,MAPTILES){
+        var obstacle = {};
+        for(let i in MAPTILES){
+            obstacle[MAPTILES[i].c] = MAPTILES[i].o;
+        }
+        var obstacleMatrix = [];
+        for(var i = 0 ; i < colorMatrix.length;i++){
+            obstacleMatrix[i] = [];
+            for(var j = 0 ; j < colorMatrix[i].length;j++){
+                var c = colorMatrix[j][i];
+                var obs = obstacle[c];
+                var ispassable = obs != undefined && obs == 0;
+                obstacleMatrix[i][j] = ispassable ? 0 : 1;
+            }
+        }
+        return obstacleMatrix;
+    }
+    isObstacle(indexIJ){
+        console.log(indexIJ);
+        try{
+            var o = this.pathfindermatrix[indexIJ.i][indexIJ.j] == 1;
+            return o;
+        }
+        catch(e){return true;}
+        
+    }
+    findPathNormPt(from,to){
+        var path = this.pathFinder.findPath(from.i,from.j,to.i,to.j);
+        var pointPathNorm = [];
+        if(path.length > 1){
+            for(let i = 1 ; i < path.length;i++){
+                var dest = path[i];
+                var pt = G.Point({
+                    x : dest[0] * CELLSIZE + CELLSIZE/2,
+                    y : dest[1] * CELLSIZE + CELLSIZE/2
+                });
+                pointPathNorm.push(pt);
+            }
+        }
+        return pointPathNorm;
+    }
+}
 class Cat{
     constructor(game){
         this.animations = game.spriteEngine.AnimateCat(); 
@@ -76,20 +433,6 @@ class Cat{
             frames.push(this.animations[i]);
         }
         return frames;
-    }
-}
-class E{
-    constructor(game,pos){
-        this.game = game;
-        this.pos = G.Point(pos);
-        this.sprite = G.getEmojiSprite(`E`,CELLSIZE,1.1);
-        this.life = 1;
-    }
-    update(t){
-
-    }
-    draw(ctx){
-        ctx.drawImage(this.sprite,this.pos.x - this.sprite.w/2,this.pos.y - this.sprite.h/2);
     }
 }
 class CPlayer {
@@ -502,6 +845,20 @@ class G{
         return canvas;
         
     }
+    static GetTextSpriteWithShadow(text,size, color,  factor = 0.8, font = 'sans-serif',shadow = '#fff'){
+        var s1 = G.getTextSprite(text,size,color,factor,font);
+        var s2 = G.getTextSprite(text,size,shadow,factor,font);
+
+        var canvas = G.makeCanvas(s1.w+4,s1.w+4);
+        canvas.ctx.drawImage(s2,1,1);
+        canvas.ctx.drawImage(s1,0,0);
+        return canvas;
+    }
+    static fuseColor(canvas,color){
+        var colorbuffer= G.makeCanvas(canvas.w,canvas.h);
+        colorbuffer.fill(color);
+        return G.fuseImage(canvas,colorbuffer,'source-atop');
+    }
     static fuseImage(canvas,canvas2,composite = 'source-atop'){
         let buffer = G.makeCanvas(canvas.width,canvas.height);
         let ctx = buffer.ctx;
@@ -707,73 +1064,6 @@ class G{
         for (var i = 0; i < 6; i++) {color += letters[Math.floor(Math.random() * 16)];}
         return color; 
     }
-    static cssrotateCanvasInY(canvas, degrees) {
-        var buffer = G.makeCanvas(canvas.width,canvas.height);
-        buffer.ctx.drawImage(canvas,0,0);
-        buffer.style.transform = `rotateY(${degrees}deg)`;
-        buffer.style.transformOrigin = 'center';
-        buffer.style.transition = 'transform 0.5s';
-        return buffer;
-    }
-    static zoomCanvasAlongX(canvas, zoomFactor) {
-        // Create a new canvas to hold the transformed content
-        const transformedCanvas = document.createElement('canvas');
-        transformedCanvas.width = canvas.width;
-        transformedCanvas.height = canvas.height;
-        
-        const ctx = transformedCanvas.getContext('2d');
-        
-        // Save the original state of the context
-        ctx.save();
-        
-        // Move the origin to the center of the canvas
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        
-        // Scale along the X axis by the zoom factor (stretch or compress)
-        ctx.scale(zoomFactor, 1);
-        
-        // Move back the origin to the top left
-        ctx.translate(-canvas.width / 2, -canvas.height / 2);
-        
-        // Draw the original canvas content onto the transformed context
-        ctx.drawImage(canvas, 0, 0);
-        
-        // Restore the context to its original state
-        ctx.restore();
-        
-        return transformedCanvas;
-    }
-    static rotateCanvasInY(canvas, degrees) {
-        const buffer = document.createElement('canvas');
-        buffer.width = canvas.width;
-        buffer.height = canvas.height;
-        const ctx = buffer.getContext('2d');
-        
-        const width = canvas.width;
-        const height = canvas.height;
-        
-        // Calculate the rotation in radians
-        const angle = degrees * Math.PI / 180;
-        const perspective = 400; // Change to control depth illusion
-        
-        // Clear buffer canvas
-        ctx.clearRect(0, 0, buffer.width, buffer.height);
-        
-        // Loop over canvas content to apply Y-axis rotation
-        for (let x = 0; x < width; x++) {
-            const offset = Math.cos(angle) * (x - width / 2);
-            const scale = perspective / (perspective - offset);
-            
-            ctx.drawImage(
-                canvas,        // Source canvas
-                x, 0, 1, height, // Source position and size (1-pixel slice)
-                (x - width / 2) * scale + width / 2, // X position with scaling
-                0, width * scale, height // Destination size with scaling
-            );
-        }
-        
-        return buffer;
-    }
     static GenShadow(canvas,thickness,color){
         var canvasColor = G.makeCanvas(canvas.w,canvas.h);
         canvasColor.fill(color);
@@ -784,6 +1074,53 @@ class G{
     }
     static NormGrid(value,base){
         return parseInt(value/base) * base + base/2;
+    }
+    static GenBorder(w,h,borderStyle,bgcolor){
+        var canvas = G.makeCanvas(w,h);
+        canvas.ctx.fillStyle = bgcolor;
+        canvas.ctx.fillRect(
+            borderStyle.w/2,
+            borderStyle.h/2,
+            canvas.w - borderStyle.w,
+            canvas.h - borderStyle.h
+        );
+        var rulerH = G.makeCanvas(canvas.w,borderStyle.h);
+        var rulerV = G.makeCanvas(borderStyle.w,canvas.h);
+        var cx = 0;
+        var s1 = borderStyle;
+        while(cx < canvas.w-s1.w){
+            rulerH.ctx.drawImage(s1,cx,0);
+            cx += s1.w/2;
+        }
+        var cy = 0;
+        while(cy < canvas.h-s1.h){
+            rulerV.ctx.drawImage(s1,0,cy);
+            cy += s1.h/2;
+        }
+        canvas.ctx.drawImage(rulerH,0,-2);
+        canvas.ctx.drawImage(rulerH,0,canvas.h-rulerH.h+2);
+        canvas.ctx.drawImage(rulerV,-1,0);
+        canvas.ctx.drawImage(rulerV,canvas.w - rulerV.w+1,0);
+        return canvas;
+    }
+    static GenerateCursor(){
+        var canvas = G.makeCanvas(CELLSIZE,CELLSIZE);
+        var ctx = canvas.ctx;
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0,0,canvas.w,canvas.h);
+        ctx.clearRect(2,2,canvas.w-4,canvas.h-4);
+        ctx.clearRect(CELLSIZE/4,0,CELLSIZE/2,CELLSIZE);
+        ctx.clearRect(0,CELLSIZE/4,CELLSIZE,CELLSIZE/2);
+        return canvas;
+    }
+    static mapClick(e,canvas,callback){
+        var rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        var x = (e.clientX - rect.left)* scaleX + window.scrollX;
+        var y = (e.clientY - rect.top)* scaleY+ window.scrollY;
+        
+        callback(G.Point({x,y}));
     }
     static rand (a=1, b=0){ return b + (a-b)*Math.random();}
     static randInt (a=1, b=0){ return G.rand(a,b)|0;}
@@ -891,14 +1228,10 @@ class GameEnginge{
 
     }
 }
-class GameScene{
-    constructor(game){
-
-    }
-}
 class Player{
     constructor(game){
         this.game = game;
+        this.speed = 2;
         this.cat = new Cat(game);
         this.catIdleAnimation = this.cat.IdleAnimation();
         this.catWalkAnimation = this.cat.WalkingAnimation();
@@ -908,11 +1241,12 @@ class Player{
             spriteindex : 0,
             spritesheet : this.catIdleAnimation
         }
-        this.center = new Point({x:22*64-32,y:22*64-32});
+        this.center = new Point({x:3*CELLSIZE-CELLSIZE/2,y:5*CELLSIZE-CELLSIZE/2});
         this.pos = G.Point(this.center);
         this.sprite = this.catIdleAnimation[0];
         this.moving = false;
         this.destination = G.Point(this.center);
+        this.pathplan = [];
     }
     update(t){
         this.animation.spritesheet = this.moving ? this.catWalkAnimation : this.catIdleAnimation;
@@ -923,13 +1257,19 @@ class Player{
             this.animation.spriteindex++;
             this.animation.frame = 0;
         }
-
-        if(this.destination.distance(this.center) > 8){
-            this.center.moveToward(this.destination,8);
+        
+        if(this.destination.distance(this.center) >= this.speed){
+            this.center.moveToward(this.destination,this.speed);
         }
         else{
             this.center = G.Point(this.destination);
             this.moving = false;
+        }
+        if(this.destination.distance(this.center) == 0 && this.pathplan.length > 0){
+            var dest = this.pathplan.shift();
+            this.destination = G.Point(dest);
+            this.moving = true;
+            console.log('new dest set',dest,this.destination);
         }
     }
     draw(ctx){
@@ -952,27 +1292,106 @@ class Player{
     }
     handleTouchPos(pos){
         var cameraXY = this.getCameraStartXY();
-        var relativeXY = {
-            x : G.NormGrid(cameraXY.x + pos.x,CELLSIZE),
-            y : G.NormGrid(cameraXY.y + pos.y,CELLSIZE),
+        var indexIJ = {
+            i : Math.floor(G.NormGrid(cameraXY.x + pos.x,CELLSIZE) / CELLSIZE),
+            j : Math.floor(G.NormGrid(cameraXY.y + pos.y,CELLSIZE) / CELLSIZE),
         }
-
-        console.log(relativeXY);
         if(this.moving == false){
-            this.destination = G.Point(relativeXY);
-            this.moving = true;
+            if(!this.game.gamemap.isObstacle(indexIJ)){
+                var origin = {
+                    i : Math.floor(this.center.x/CELLSIZE),
+                    j : Math.floor(this.center.y/CELLSIZE),
+                }
+                this.pathplan = this.game.gamemap.findPathNormPt(origin,indexIJ);
+                // this.destination = G.Point(this.pathplan.shift());
+                console.log(this.pathplan);
+            }
         }
     }
 }
+class ChatButton{
+    constructor(card,text,callback){
+        this.text = text;
+        this.buttonsprite = this.drawButton();
+    }
+    drawButton(){
+        var textSprite = G.getTextSprite(this.text,20,'#fff',1.3);
+        var border = G.getTextSprite('▄',4,'#fff',1.3);
+        var buttonBorder = G.GenBorder(textSprite.w+8,textSprite.h+8,border,'#7a7818');
+        buttonBorder.ctx.drawImage(textSprite,4,4);
+        return buttonBorder;
+    }
+}
 class ChatCard{
-    constructor(){
-        var canvas = G.makeCanvas(300,300);
-        var ctx = canvas.ctx;
-
-
+    constructor(w,h){
+        this.w = 500;
+        this.h = 250;
+        this.coreCard = this.getCoreCard(w,h);
+        var canvas = G.makeCanvas(this.w,this.h);
+        canvas.ctx.drawImage(this.coreCard,0,0);
+        var s1 = G.getTextSprite(`▣`,8,'#7a7818',1.3);
+        var picborder = G.GenBorder(64,64,s1,'#c3c139');
+        var we = G.getEmojiSprite('🧙',64,1.3);
+        canvas.ctx.drawImage(picborder,
+            canvas.w - picborder.w - 16,
+            16
+        );
+        canvas.ctx.drawImage(we,
+            canvas.w - picborder.w - 16,
+            16
+        );
+        var t1 = G.GetTextSpriteWithShadow(`Hello? .....`,16,'#7a7818',1,'cursive');
+        canvas.ctx.drawImage(t1,16,64);
+        this.canvas = canvas;
+        this.drawButtons();
         
+    }
+    drawButtons(){
+        this.buttons = [
+            new ChatButton(this,'Hello',(e)=>{console.log('hello')}),
+            new ChatButton(this,'Skip',(e)=>{console.log('skip')}),
+        ];
+        var cx = 16;
+        var cy = this.canvas.h - CELLSIZE;
+        for(let i in this.buttons){
+            var btn = this.buttons[i];
+            var sprite = btn.buttonsprite;
+            this.canvas.ctx.drawImage(
+                sprite,
+                cx,
+                cy
+            );
+            cx += sprite.w + CELLSIZE;
+        }
+    }
+    getCoreCard(w,h){
+        var s1 = G.getTextSprite(`▩`,16,'#c3c139',1.3);
+        return G.GenBorder(w,h,s1,'#e7e570');
+    }
+    draw(ctx,x,y){
+        ctx.drawImage(this.canvas,
+            x - this.canvas.w/2
+            ,
+            y - this.canvas.h/2
+        
+        );
+        
+    }
+}
+class SkillTree{
+    constructor(game){
+        this.elements = {
+            mana : '🔮',
+            water : '💧',
+            fire : '🔥',
+            earth : '',
+            wind : '',
+            ice : '',
 
-        return canvas;
+        }
+    }
+    getLayout(){
+
     }
 }
 class Minigame1{
@@ -984,42 +1403,47 @@ class Minigame1{
         this.cat = new Cat(game);
         this.catSprite = this.cat.Idle();
         this.canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
+        this.mousePos = {x:0,y:0};
+        this.canvas.addEventListener('click',(e)=>{this.handleClick(e);});
         this.ctx = this.canvas.ctx;
         this.body.append(this.canvas);
         console.log('mg1');
         this.paused = false;
         this.sceneEnded = false;
         this.s1 = G.getTextSprite(`⟐⟑⟇⟒⟓⟔⟁`,14,'#ffffff',1.3);
-
-        var wizard = G.getEmojiSprite('',64,1.3);
-        var chatcard = new ChatCard(wizard,'uhm... hello?');
-
-        this.chat = [
-            'uhmmm.....',
-            'uhmmm..... hello ?',
-            '',
-            '',
-        ];
-        this.currentchat = 0;
-
-
-
-
-
+        this.chatcard = new ChatCard(500,250);
+        this.cursorSprite = G.GenerateCursor();
         this.update(0);
-        
+    }
+    handleClick(e){
+        G.mapClick(e,this.canvas,(pt)=>{
+            var x = pt.x;
+            var y = pt.y;
+            x = Math.floor(x/CELLSIZE) * CELLSIZE + CELLSIZE / 2;
+            y = Math.floor(y/CELLSIZE) * CELLSIZE + CELLSIZE / 2;
+            this.mousePos = {x:x-CELLSIZE/2,y:y-CELLSIZE/2};
+
+        });
     }
     update(t){
         if(this.paused) return;
         this.canvas.fill('#aaa');
         // this.ctx.fillStyle = '#fff';
         this.ctx.fillText(t,10,10);
-        // for(let i = 0 ; i < 130; i++){
-        //     this.ctx.drawImage(this.s1,
-        //         G.randInt(-64,this.canvas.w),
-        //         G.randInt(-64,this.canvas.h)
-        //     );
-        // }
+        for(let i = 0 ; i < 130; i++){
+            this.ctx.drawImage(this.s1,
+                G.randInt(-64,this.canvas.w),
+                G.randInt(-64,this.canvas.h)
+            );
+        }
+        this.chatcard.draw(this.ctx,this.canvas.w/2,this.canvas.h/2);
+        if(this.mousePos){
+            this.canvas.ctx.drawImage(this.cursorSprite,
+                this.mousePos.x,
+                this.mousePos.y,
+            );
+        }
+        
         // this.ctx.drawImage(this.catSprite, this.canvas.w/2,this.canvas.h/2);
         requestAnimationFrame(newtime=>this.update(newtime));
     }
@@ -1033,8 +1457,9 @@ class Game extends GameEnginge{
             this.cellSize = CELLSIZE;
             this.spriteEngine = new SpriteEngine(img);
             this.objects = [];
-            this.scene = new Minigame1(this);
-            // this.mainScene();
+            // this.scene = new Minigame1(this);
+            // this.scene = new MainLoadingScene(this);
+            this.mainScene();
         })
         return;
     }
@@ -1060,8 +1485,8 @@ class Game extends GameEnginge{
         // entities[0][4].append(`Level`);
         // entities[1][4].append(this.leveldom);
         
-        entities[0][5].rowSpan = 2;
-        entities[0][5].append(G.getEmojiSprite('📋',40,1.4));
+        // entities[0][5].rowSpan = 2;
+        // entities[0][5].append(G.getEmojiSprite('📋',40,1.4));
 
         entities[1][5].remove();
         entities[0][5].onclick = ()=>{this.showMenu();}
@@ -1406,258 +1831,6 @@ class Game extends GameEnginge{
         requestAnimationFrame(update);
     }
 }
-class Prologue{
-    constructor(game){
-        this.game = game;
-    }
-    draw(canvas){
-
-    }
-    update(t){
-
-    }
-}
-class GameMap{
-    constructor(game){
-        this.game = game;
-        this.cw = this.game.canvasDim.w;
-        this.ch = this.game.canvasDim.h;
-        this.map = this.RenderMap(game.spriteEngine.mapBlueprint);
-    }
-    getMap(){
-        return G.imgToCanvas(this.map);
-    }
-    cropMap(sx,sy,w,h){ 
-        return G.crop(this.map,
-            sx,
-            sy,
-            w,
-            h
-        );
-
-    }
-    draw(ctx,px,py){
-        let buffer = this.map;
-        let sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight;
-        sx=sy=sWidth=sHeight=dx=dy=dWidth=dHeight = 0;
-        let edge = {
-            x : px - (this.cw / 2),
-            y : py - (this.ch / 2),
-        }
-        sx = edge.x;
-        sy = edge.y;
-        if(sx <= 0) {
-            sx = 0;
-            px = sx + this.cw / 2;
-        }
-        if(sy <= 0) {
-            sy = 0;
-            py = sy + this.ch/2;
-        }
-        if(sx + this.w > buffer.width){
-            sx = buffer.width - this.cw;
-            px = sx + this.cw / 2;
-        }
-        if(sy + this.h > buffer.height){
-            sy = buffer.height - this.ch;
-            py = sy + this.ch/2;
-        }
-        dx = 0;
-        dy = 0;
-        sWidth  = dWidth = this.w;
-        sHeight = dHeight = this.h;
-        ctx.drawImage(buffer, 
-            sx, 
-            sy, 
-            sWidth, 
-            sHeight, 
-            dx, 
-            dy, 
-            dWidth, 
-            dHeight);
-    }
-    GenWaterTile(){
-        const canvas = G.makeCanvas(64, 64);
-        const ctx = canvas.ctx;
-        ctx.fillStyle = "#639bff";
-        ctx.fillRect(0, 0, 64, 64);
-        for (let i = 0; i < 120; i++) {
-            const x = G.randInt(0, 64);
-            const y = G.randInt(0, 64);
-            const r = G.randInt(2, 6);
-            ctx.globalAlpha = G.rand(0.15, 0.35);
-            ctx.fillStyle = "#a3d8ff";
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-        return canvas;
-    }
-    GenDirtTile() {
-        const canvas = G.makeCanvas(64, 64);
-        const ctx = canvas.ctx;
-        ctx.fillStyle = "#a67c52";
-        ctx.fillRect(0, 0, 64, 64);
-        for (let i = 0; i < 80; i++) {
-            const x = G.randInt(0, 64);
-            const y = G.randInt(0, 64);
-            const r = G.randInt(2, 5);
-            ctx.globalAlpha = G.rand(0.15, 0.35);
-            ctx.fillStyle = G.rand() > 0.5 ? "#c2b280" : "#7c5c36";
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-        return canvas;
-    }
-    GenGrassTile() {
-        const canvas = G.makeCanvas(64, 64);
-        const ctx = canvas.ctx;
-        // Base grass color
-        ctx.fillStyle = "#4caf50";
-        ctx.fillRect(0, 0, 64, 64);
-        // Add random spots for texture
-        for (let i = 0; i < 90; i++) {
-            const x = G.randInt(0, 64);
-            const y = G.randInt(0, 64);
-            const r = G.randInt(2, 5);
-            ctx.globalAlpha = G.rand(0.18, 0.38);
-            ctx.fillStyle = G.rand() > 0.5 ? "#81c784" : "#388e3c";
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-        return canvas;
-    }
-    GenWalkwayTile() {
-        const canvas = G.makeCanvas(64, 64);
-        const ctx = canvas.ctx;
-        // Base walkway color
-        ctx.fillStyle = "#b0a99f";
-        ctx.fillRect(0, 0, 64, 64);
-        const brickW = 16, brickH = 16;
-        for (let row = 0; row < 4; row++) {
-            for (let col = 0; col < 4; col++) {
-                // Offset every other row for a brick pattern
-                let x = col * brickW + (row % 2 === 1 ? brickW / 2 : 0);
-                if (x + brickW > 64) continue; // Avoid overflow
-                let y = row * brickH;
-                ctx.fillStyle = G.rand() > 0.5 ? "#d6d2c4" : "#a59e91";
-                ctx.fillRect(x, y, brickW - 2, brickH - 2);
-                ctx.strokeStyle = "#8d867a";
-                ctx.lineWidth = 1;
-                ctx.strokeRect(x, y, brickW - 2, brickH - 2);
-            }
-        }
-        ctx.globalAlpha = 1;
-        return canvas;
-    }
-    GenFlowerGarden(){
-        var sprites = [
-            G.getEmojiSprite("🌹", 12,1.3),
-            G.getEmojiSprite("🌷", 12,1.3),
-            G.getEmojiSprite("🌻", 12,1.3),
-            G.getEmojiSprite("🌼",12,1.3),
-            G.getEmojiSprite("🌱",12,1.3),
-        ];
-        const canvas = G.makeCanvas(64, 64);
-        var ctx = canvas.ctx;
-        var grass = this.GenGrassTile();
-        ctx.fillStyle = "#4caf50";
-        ctx.drawImage(grass,0,0);
-        for (let i = 0; i < 8; i++) {
-            const x = G.randInt(0, 64-12);
-            const y = G.randInt(0, 64-12);
-            var randSprite = sprites[G.randInt(0,sprites.length)];
-            ctx.drawImage(randSprite,x,y);
-        }
-        return canvas;
-    }
-    RenderMap(blueprint){
-        this.collisionMat = [];
-        var grass = this.GenGrassTile();
-        var dirt = this.GenDirtTile();
-        var walkway = this.GenWalkwayTile();
-        var water = this.GenWaterTile();
-        var tree1 = G.getEmojiSprite(`🌳`,64,1.3);
-        var house1 = G.getEmojiSprite(`🏡`,64*2,1.3);
-        var house2 = G.getEmojiSprite(`🏠`,64*2,1.3);
-        var church = G.getEmojiSprite(`⛪`,64*3,1.3);
-        var townhall = G.getEmojiSprite(`🏫`,64*3,1.3);
-        var castle = G.getEmojiSprite(`🏰`,64*4,1.3);
-        var store = G.getEmojiSprite(`🏪`,64*3,1.3);
-        var stoneBrickWall = G.brickPattern('#afafaf','#6d6c6c',4);
-        var mat = G.getColorMatrix(blueprint,(r)=>{
-            if(r == '') return null;
-            return r;
-        });
-        var set = new Set();
-        mat.flat().map(x=> set.add(x));
-        var buffer = G.makeCanvas(64*64,64*64);
-        var ctx = buffer.ctx;
-        for(let i = 0 ; i < 64; i++){
-            this.collisionMat[i] = [];
-            for(let j = 0 ; j < 64 ;j++){
-                this.collisionMat[i][j] = 0;
-                var col = mat[j][i];
-                if(col == '#99e550'){
-                    ctx.drawImage(grass,i*64,j*64);
-                }
-                else if(col == "#639bff"){
-                    ctx.drawImage(water,i*64,j*64);
-                }
-                else if(col == "#6abe30"){
-                    ctx.drawImage(grass,i*64,j*64);
-                    ctx.drawImage(tree1,i*64,j*64);
-                }
-                else if(col == "#76428a"){
-                    ctx.drawImage(grass,i*64,j*64,128,128);
-                    ctx.drawImage(house1,i*64,j*64);
-                }
-                else if(col == "#d77bba"){
-                    ctx.drawImage(grass,i*64,j*64,128,128);
-                    ctx.drawImage(house2,i*64,j*64);
-                }
-                else if(col == "#d9a066"){
-                    ctx.drawImage(dirt,i*64,j*64,64,64);
-                }
-                else if(col == "#767676"){
-                    ctx.drawImage(stoneBrickWall,i*64,j*64,64,64);
-                }
-                else if(col == "#df7126"){
-                    ctx.drawImage(grass,i*64,j*64,64*4,64*4);
-                    ctx.drawImage(castle,i*64,j*64,64*4,64*4);
-                }
-                else if(col == "#8f974a"){
-                    ctx.drawImage(grass,i*64,j*64,64*3,64*3);
-                    ctx.drawImage(church,i*64,j*64,64*3,64*3);
-                }
-                else if(col == "#fbf236"){
-                    ctx.drawImage(grass,i*64,j*64,64*3,64*3);
-                    ctx.drawImage(townhall,i*64,j*64,64*3,64*3);
-                }
-                else if(col == "#ac3232"){
-                    ctx.drawImage(grass,i*64,j*64,64*3,64*3);
-                    ctx.drawImage(store,i*64,j*64,64*3,64*3);
-                }
-                else if(col == "#663931"){
-                    ctx.drawImage(walkway,i*64,j*64,64,64);
-                }
-                else if(col == "#4b692f"){
-                    ctx.drawImage(this.GenFlowerGarden(),i*64,j*64,64,64);
-                }
-                else if(col = '#000000'){}
-                else{
-                    ctx.drawImage(dirt,i*64,j*64);
-                }
-            }
-        }
-        return buffer;
-    }
-}
 class MainLoadingScene{
     constructor(game){
         this.cat = new Cat(game);
@@ -1687,11 +1860,24 @@ class MainLoadingScene{
         canvas.ctx.drawImage(this.canvas,0,0);
     }
     GenFamiliarSprite(){
-        var FamilarSpriteWhite = G.getTextSprite(`FAMILIAR`,   64, `#fff`, 1.5, 'cursive');
-        var FamilarSpriteRed = G.getTextSprite(`FAMILIAR`,   64, `#b90000`, 1.5, 'cursive');
-        var canvas = G.makeCanvas(FamilarSpriteRed.w + 4, FamilarSpriteRed.h + 4);
-        canvas.ctx.drawImage(FamilarSpriteRed,1,1);
-        canvas.ctx.drawImage(FamilarSpriteWhite,0,0);
+        var letters = ['F','A','M','I','L','I','A','R'];
+        var canvas = G.makeCanvas(64*letters.length,CELLSIZE+4);
+        var cx = 0;
+        for(let i in letters){
+            var sprite = G.getTextSprite(letters[i],CELLSIZE,'#fff',1.1,'cursive');
+            var sprite2 = G.getTextSprite(letters[i],CELLSIZE,'#b90000',1.1,'cursive');
+            canvas.ctx.drawImage(sprite, cx+1,1);
+            canvas.ctx.drawImage(sprite2, cx, 0);
+            cx += CELLSIZE;
+        }
+
+        // var FamilarSpriteWhite = G.getTextSprite(`FAMILIAR`,   64, `#fff`, 1.5, 'cursive');
+        // var FamilarSpriteRed = G.getTextSprite(`FAMILIAR`,   64, `#b90000`, 1.5, 'cursive');
+        // var canvas = G.makeCanvas(FamilarSpriteRed.w + 4, FamilarSpriteRed.h + 4);
+        // canvas.ctx.drawImage(FamilarSpriteRed,1,1);
+        // canvas.ctx.drawImage(FamilarSpriteWhite,0,0);
+        
+        
         this.familiarSprite = {
             sprite : canvas,
             locX :128,
@@ -1741,6 +1927,12 @@ class MainLoadingScene{
             this.familiarSprite.currentShowing = 0;
         }
 
+
+    }
+}
+class SummoningCatScene{
+    constructor(game){
+        this.game = game;
 
     }
 }
