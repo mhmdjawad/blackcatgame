@@ -24,38 +24,96 @@ class SpriteEngine{
     AnimateCat(){
         var mainSprite = G.imgToCanvas(this.black_cat);
         var sprites = [];
-        var tail = G.crop(mainSprite, 48,48,21,8);
+        var parts = {
+            tail : [27,20,4,6],
+            leftFoot : [7,29,8,3],
+            rightFoot : [17,29,8,3],
+            leftArm : [5,15,5,7],
+            rightArm: [22,15,5,7]
+        };
+        function crp(values){
+            return G.crop(mainSprite,values[0],values[1],values[2],values[3]);
+        }
+        var tail = crp(parts.tail);
         var tailInverse = G.mirror(tail,false);
-        var leftFoot = G.crop(mainSprite, 13,56,16,8);
-        var rightFoot = G.crop(mainSprite, 35,56,16,8);
-
-        //clear positions
-        mainSprite.ctx.clearRect(48,48,21,8); //tail
-        mainSprite.ctx.clearRect(13,56,16,8); //left
-        mainSprite.ctx.clearRect(35,56,16,8); //right
+        var leftFoot = crp(parts.leftFoot);
+        var rightFoot = crp(parts.rightFoot);
+        var leftArm = crp(parts.leftArm);
+        var leftArmInv = G.mirror(leftArm,false);
+        var rightArm = crp(parts.rightArm);
+        var rightArmInv = G.mirror(rightArm,false);
+        for(let i in parts){
+            let p = parts[i];
+            mainSprite.ctx.clearRect(p[0],p[1],p[2],p[3]);
+        }       
+        function drawSpecs(LF,RF,T,LA,RA){
+            var clone = G.imgToCanvas(mainSprite);
+            clone.ctx.drawImage(leftFoot, parts.leftFoot[0],parts.leftFoot[1] + (LF ? -2 : 0));
+            clone.ctx.drawImage(rightFoot, parts.rightFoot[0],parts.rightFoot[1] + (RF? -2 : 0));
+            if(T){
+                clone.ctx.drawImage(tailInverse, parts.tail[0],parts.tail[1] + 4);
+            }
+            else{
+                clone.ctx.drawImage(tail, parts.tail[0],parts.tail[1]);
+            }
+            if(LA){
+                clone.ctx.drawImage(leftArmInv, parts.leftArm[0],parts.leftArm[1]-4);
+            }
+            else{
+                clone.ctx.drawImage(leftArm, parts.leftArm[0],parts.leftArm[1]);
+            }
+            if(RA){
+                clone.ctx.drawImage(rightArmInv, parts.rightArm[0],parts.rightArm[1]-4);
+            }
+            else{
+                clone.ctx.drawImage(rightArm, parts.rightArm[0],parts.rightArm[1]);
+            }
+            return clone;
+        }
         var spriteSpec = [
-            {L : 0 , R : 0 , IT : 0}, // idle 1 normal
-            {L : 0 , R : 0 , IT : 0}, // idle move tail
-            {L : -4 , R : 0 , IT : 0}, // left leg up tail norm
-            {L : -4 , R : 0 , IT : 1}, //left leg up tail inv
-            {L : 0 , R : -4 , IT : 0}, //right leg up tail norm
-            {L : 0 , R : -4 , IT : 1}, //right leg up tail inv
+            {LF : 0 ,   RF : 0 ,    T : 0,  LA:0,   RA:0}, // idle 1 normal
+            {LF : 0 ,   RF : 0 ,    T : 0,  LA:0,   RA:0}, // idle move tail
+            {LF : 1 ,   RF : 0 ,    T : 0,  LA:0,   RA:1}, // left leg up tail norm
+            {LF : 1 ,   RF : 0 ,    T : 1,  LA:0,   RA:0}, //left leg up tail inv
+            {LF : 0 ,   RF : 1 ,    T : 0,  LA:1,   RA:0}, //right leg up tail norm
+            {LF : 0 ,   RF : 1 ,    T : 1,  LA:0,   RA:0}, //right leg up tail inv
         ]; 
         for(let i in spriteSpec){
             var spec = spriteSpec[i];
-            var clone = G.imgToCanvas(mainSprite);
-            clone.ctx.drawImage(leftFoot, 13,56 + spec.L);
-            clone.ctx.drawImage(rightFoot, 35,56 + spec.R);
-            if(spec.IT){
-                clone.ctx.drawImage(tailInverse, 48, 48+4);
-            }
-            else{
-                clone.ctx.drawImage(tail, 48, 48);
-            }
+            var clone = drawSpecs(spec.LF,spec.RF,spec.T,spec.LA,spec.RA);
             sprites.push(clone);
         }
         return sprites;
     }
+}
+class Clickable{
+    constructor(x,y,w,h,sprite,onclick){
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.sprite = sprite;
+        this.onclick = onclick;
+    }
+    handleTouchPos(pos){
+        if(this.isInside(pos.x,pos.y)){
+            if(this.onclick) this.onclick(this);
+            return true;
+        }
+        return false;
+    }
+    isInside(px,py){
+        return px >= this.x && px <= this.x + this.w && py >= this.y && py <= this.y + this.h;
+    }
+    draw(ctx){
+        ctx.save();
+        ctx.strokeStyle = '#f00';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.x,this.y,this.w,this.h);
+        ctx.restore();
+        ctx.drawImage(this.sprite,this.x,this.y,this.w,this.h);
+    }
+    update(t){}
 }
 class Pathfinder {
     constructor(maze) {
@@ -170,21 +228,21 @@ class GameMap{
         var store = G.getEmojiSprite(`🏪`,CELLSIZE*3,1.3);
         var tent = G.getEmojiSprite(`⛺`,CELLSIZE*3,1.3);
         var stoneBrickWall = G.brickPattern('#afafaf','#6d6c6c',4);
-
+        this.locations = [];
         this.colordict = [
-            {c:'#99e550',o: 0, s: undefined},
-            {c:'#639bff',o: 1, s: water},
-            {c:'#6abe30',o: 1, s: tree1},
-            {c:'#76428a',o: 1, s: house1},
-            {c:'#d77bba',o: 1, s: house2},
-            {c:'#d9a066',o: 0, s: dirt},
-            {c:'#767676',o: 1, s: stoneBrickWall},
-            {c:'#df7126',o: 1, s: castle},
-            {c:'#8f974a',o: 1, s: church},
-            {c:'#fbf236',o: 1, s: townhall},
-            {c:'#ac3232',o: 1, s: store},
-            {c:'#663931',o: 0, s: walkway},
-            {c:'#524b24',o: 1, s: tent},
+            {c:'#99e550',o: 0, l:'', s: undefined},
+            {c:'#639bff',o: 1, l:'', s: water},
+            {c:'#6abe30',o: 1, l:'', s: tree1},
+            {c:'#76428a',o: 1, l:'house1', s: house1},
+            {c:'#d77bba',o: 1, l:'house2', s: house2},
+            {c:'#d9a066',o: 0, l:'', s: dirt},
+            {c:'#767676',o: 1, l:'', s: stoneBrickWall},
+            {c:'#df7126',o: 1, l:'castle', s: castle},
+            {c:'#8f974a',o: 1, l:'church', s: church},
+            {c:'#fbf236',o: 1, l:'townhall', s: townhall},
+            {c:'#ac3232',o: 1, l:'store', s: store},
+            {c:'#663931',o: 0, l:'', s: walkway},
+            {c:'#524b24',o: 1, l:'tent', s: tent},
         ];
         this.blueprintasmatrix = G.getColorMatrix(game.spriteEngine.mapBlueprint,(r)=>{
             if(r == '') return null;
@@ -308,7 +366,7 @@ class GameMap{
         // Base walkway color
         ctx.fillStyle = "#b0a99f";
         ctx.fillRect(0, 0, w, h);
-        const brickW = 16, brickH = 16;
+        const brickW = w/4, brickH = h/4;
         for (let row = 0; row < 4; row++) {
             for (let col = 0; col < 4; col++) {
                 // Offset every other row for a brick pattern
@@ -390,7 +448,6 @@ class GameMap{
         return obstacleMatrix;
     }
     isObstacle(indexIJ){
-        console.log(indexIJ);
         try{
             var o = this.pathfindermatrix[indexIJ.i][indexIJ.j] == 1;
             return o;
@@ -1383,7 +1440,6 @@ class Player{
             this.animation.spriteindex++;
             this.animation.frame = 0;
         }
-        
         if(this.destination.distance(this.center) >= this.speed){
             this.center.moveToward(this.destination,this.speed);
         }
@@ -1395,7 +1451,6 @@ class Player{
             var dest = this.pathplan.shift();
             this.destination = G.Point(dest);
             this.moving = true;
-            console.log('new dest set',dest,this.destination);
         }
     }
     draw(ctx){
@@ -1417,6 +1472,7 @@ class Player{
         };
     }
     handleTouchPos(pos){
+        if(pos.y < CELLSIZE) return;
         var cameraXY = this.getCameraStartXY();
         var indexIJ = {
             i : Math.floor(G.NormGrid(cameraXY.x + pos.x,CELLSIZE) / CELLSIZE),
@@ -1429,8 +1485,6 @@ class Player{
                     j : Math.floor(this.center.y/CELLSIZE),
                 }
                 this.pathplan = this.game.gamemap.findPathNormPt(origin,indexIJ);
-                // this.destination = G.Point(this.pathplan.shift());
-                console.log(this.pathplan);
             }
         }
     }
@@ -1574,6 +1628,17 @@ class Minigame1{
         requestAnimationFrame(newtime=>this.update(newtime));
     }
 }
+class CombatScene{
+    constructor(game){
+        this.game = game;
+    }
+    update(t){
+
+    }
+    draw(ctx){
+
+    }
+}
 class MiniGameMemoryBlocks{
     constructor(game){
         this.game = game;
@@ -1592,12 +1657,12 @@ class Game extends GameEnginge{
             this.cellSize = CELLSIZE;
             this.spriteEngine = new SpriteEngine(img);
             this.objects = [];
-            var cat = new Cat(this);
-            var catincar = cat.CatInCar();
-            document.body.append(catincar);
+            // var cat = new Cat(this);
+            // var catincar = cat.CatInCar();
+            // document.body.append(catincar);
             // this.scene = new Minigame1(this);
             // this.scene = new MainLoadingScene(this);
-            // this.mainScene();
+            this.mainScene();
         })
         return;
     }
@@ -1623,8 +1688,8 @@ class Game extends GameEnginge{
         // entities[0][4].append(`Level`);
         // entities[1][4].append(this.leveldom);
         
-        // entities[0][5].rowSpan = 2;
-        // entities[0][5].append(G.getEmojiSprite('📋',40,1.4));
+        entities[0][5].rowSpan = 2;
+        entities[0][5].append(G.getEmojiSprite('📋',40,1.4));
 
         entities[1][5].remove();
         entities[0][5].onclick = ()=>{this.showMenu();}
@@ -1675,8 +1740,6 @@ class Game extends GameEnginge{
     }
     newGame(){
         this.resetBody();
-        this.prepheader();
-        this.prepFootercontrols();
         this.body.innerHTML = '';
         this.gamemap = new GameMap(this);
         this.canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
@@ -1684,7 +1747,10 @@ class Game extends GameEnginge{
         this.body.appendChild(this.canvas);
         this.body.appendChild(this.helpdom);
         this.player = new Player(this);
-
+        
+        this.menuclickables = [
+            new Clickable(0,0,CELLSIZE,CELLSIZE,G.getEmojiSprite('📋',CELLSIZE,1.4),(e)=>{this.showMenu()})
+        ]
         this.objects = [
             this.player
         ]
@@ -1711,67 +1777,24 @@ class Game extends GameEnginge{
 
         var handleEnd =()=>{this.touchPos = null;}
         var handleStart = (e)=>{
-            this.touchPos = getTp(e.touches ? e.touches[0] : e);
+            G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt)=>{
+                var x = pt.x;
+                var y = pt.y;
+                this.touchPos = { x: x, y: y };
+            });
         }
         var handleMove = (e)=>{
             if (this.touchPos) {
-                this.touchPos = getTp(e.touches ? e.touches[0] : e);
+                G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt)=>{
+                    var x = pt.x;
+                    var y = pt.y;
+                    this.touchPos = { x: x, y: y };
+                });
             }
         }
-        var getTp = (e)=>{
-            var rect = this.canvas.getBoundingClientRect();
-            var x = e.clientX - rect.left + window.scrollX;
-            var y = e.clientY - rect.top + window.scrollY;
-            return { x: x, y: y };
-        }
         return;
-    }
-    LevelEndScene(){
-        this.gamePased = true;
-        if(this.dialog != null){this.dialog.remove();}
-        this.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
-        this.dialog.innerHTML = `<h1>Well Done<h1><h2> Level ${this.level} finished</h2>`;
-        var nextLevelButton = G.makeDom(`<button id="nextLevel"><h3>Next Level</h3></button>`);
-        nextLevelButton.onclick = ()=>{
-            this.newLevel(this.level+1);
-        }
-        this.dialog.append(nextLevelButton);
-        this.body.append(this.dialog);
-    }
-    handleClick(e){
-        if(this.dialog != null){this.dialog.remove();}
-        var rect = this.canvas.getBoundingClientRect();
-        var x = e.clientX - rect.left + window.scrollX;
-        var y = e.clientY - rect.top + window.scrollY;
-        x = Math.floor(x/CELLSIZE) * CELLSIZE + CELLSIZE / 2;
-        y = Math.floor(y/CELLSIZE) * CELLSIZE + CELLSIZE / 2;
-        var pos = {x:x,y:y};
-        this.mousePos = {x:x-CELLSIZE/2,y:y-CELLSIZE/2};
-        return;
-    }
-    gameOverScene(){
-        this.gamePased = true;
-        this.gameover = true;
-        if(this.dialog != null){this.dialog.remove();}
-        this.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
-        this.dialog.style.width = `${this.canvasDim.w}px`;
-        this.dialog.style.height = `${this.canvasDim.h * 0.8}px`;
-        this.dialog.innerHTML = `<h1>Game Over</h1>`;
-        if(this.timeup){
-            this.dialog.innerHTML = `<h2>Time Up</h2>`;
-        }
-        var button = G.makeDom(`<button id="nextLevel"><h2>New Game</h2></button>`);
-        button.style.width = `${this.canvasDim.w * 0.90}px`;
-        button.onclick = ()=>{
-            this.newGame();
-        }
-        this.dialog.append(button);
-        this.body.append(this.dialog);
     }
     ApplyMenuItem(item){
-        if(item == 'upgradeplayer'){
-            this.upgradeplayer();
-        }
         if(item == 'newgame'){
             this.gamePased = false;
             this.gameover = false;
@@ -1780,12 +1803,6 @@ class Game extends GameEnginge{
         else if(item == 'resume'){
             this.gamePased = false;
             this.dialog.remove();
-            this.update(this.time);
-        }
-        else if(item == 'controls'){
-            this.config.controls = !this.config.controls;
-            this.prepFootercontrols();
-            this.showMenu();
             this.update(this.time);
         }
         else if(item == 'music'){
@@ -1810,30 +1827,6 @@ class Game extends GameEnginge{
             this.dialog.remove();
             this.mainScene();
         }
-        else if(item == `help`){
-            this.gamePased = true;
-            if(this.dialog != null){this.dialog.remove();}
-            this.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
-            this.dialog.style.width = `${this.canvasDim.w}px`;
-            var h2 = `
-                <div class="helpDiv">
-                    <h2>Help</h2>
-                </div>
-            `;
-            var mdom = G.makeDom('<button>Menu</button>');
-            mdom.onclick = ()=>{
-                this.gamePased = false;
-                this.dialog.remove();
-                this.showMenu();
-                // this.update(this.time);
-            }
-            this.dialog.innerHTML += h2;
-            var helpDiv = this.dialog.querySelector('.helpDiv');
-            helpDiv.style['overflow-y'] = `auto`;
-            helpDiv.style.height = this.canvasDim.h * 0.8  + `px`;
-            this.dialog.append(mdom);
-            this.body.append(this.dialog);
-        }
     }
     parseNum(v){
         if(v >= 10000000000) return `${(v/10000000000).toFixed(1)}T`;
@@ -1847,9 +1840,7 @@ class Game extends GameEnginge{
         var ctx = basemaplayout.ctx;
         
         //draw player and objects on map
-        this.obj
         this.player.draw(ctx);
-
         var startXY = this.player.getCameraStartXY();
         var cropmap = G.crop(basemaplayout,
             startXY.x,
@@ -1857,37 +1848,33 @@ class Game extends GameEnginge{
             this.canvasDim.w,
             this.canvasDim.h
         );
+
         return cropmap;
     }
     update(t){
         if(this.gamePased == true){return;}
         if(this.gameover == true) return this.gameOverScene();
         this.objects.forEach(x=> x.update(t));
-
         var basemaplayout = this.gamemap.getMap();
         var bufferctx = basemaplayout.ctx;
         //draw player and objects on map
         this.objects.sort((a, b) => {return a.pos ? a.pos?.y : Infinity - b.pos ? b.pos?.y : Infinity;});
         this.objects.forEach(x=> x.draw(bufferctx));
-        
-
         var startX = Math.max(0,this.player.center.x - this.canvasDim.w / 2);
         var startY = Math.max(0,this.player.center.y - this.canvasDim.h / 2);
-        
-        
         var crop = G.crop(basemaplayout,
             startX,
             startY,
             this.canvasDim.w,
             this.canvasDim.h
         );
-
-
-        this.canvas.clear();
+        this.canvas.fill('#fff');
         this.canvas.ctx.drawImage(crop,0,0);
-        this.timedom.innerHTML = `${this.parseTime(t/1000)}`;
+        this.canvas.ctx.fillRect
+        this.menuclickables.forEach(x=> x.draw(this.canvas.ctx));
         if(this.touchPos){
-            this.player.handleTouchPos(this.touchPos);
+            this.objects.forEach(x=> {if(x.handleTouchPos) x.handleTouchPos(this.touchPos)});
+            this.menuclickables.forEach(x=> {if(x.handleTouchPos) x.handleTouchPos(this.touchPos)});
             this.touchPos = null;
         }
         this.time = t;
@@ -1921,10 +1908,6 @@ class Game extends GameEnginge{
         return canvas;
     }
     getMainMenuBg(canvas){
-        var credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
-        var spaces = [
-            G.randomPattern('#aaa','#fff',0.001,500,500),
-        ];
         var scene = new MainLoadingScene(this);
         scene.draw(canvas);
         function update(t){
@@ -1932,40 +1915,6 @@ class Game extends GameEnginge{
             scene.draw(canvas);
             requestAnimationFrame(update);
         }
-
-        /*var catAnimations = this.spriteEngine.AnimateCat();
-        var curAnim = 0;
-        var curAnimTimeout = 0;
-        var cat = this.spriteEngine.black_cat;
-        var currentPosForCat1 = {x: 0, y : canvas.h/2 - cat.h/2};
-        var currentPosForCat2 = {x: canvas.w - cat.w, y : canvas.h/2 - cat.h/2 + cat.h};
-        var currentPosForCat3 = {x: 0 - cat.w, y : canvas.h/2 - cat.h/2 + cat.h * 2};
-        var currentPosForCat4 = {x: canvas.w - cat.w, y : canvas.h/2 - cat.h/2 + cat.h * 3};
-        var current = 0;
-        canvas.fillPatern(spaces[0]);
-        function update(t){
-            var cat = catAnimations[curAnim];
-            
-            canvas.fillPatern(spaces[current]);
-            canvas.ctx.drawImage(credit, 0,  canvas.h - credit.h);
-            canvas.ctx.drawImage(cat, currentPosForCat1.x,currentPosForCat1.y);
-            canvas.ctx.drawImage(cat, currentPosForCat2.x,currentPosForCat2.y);
-            canvas.ctx.drawImage(cat, currentPosForCat3.x,currentPosForCat3.y);
-            canvas.ctx.drawImage(cat, currentPosForCat4.x,currentPosForCat4.y);
-            // currentPosForCat1.x+= 1;
-            currentPosForCat2.x-= 1;
-            currentPosForCat3.x+= 1;
-            currentPosForCat4.x-= 1;
-            current ++;
-            curAnimTimeout++;
-            if(curAnimTimeout > 16){
-                curAnimTimeout = 0;
-                curAnim++;
-            }
-            if(current >= spaces.length) current = 0;
-            if(curAnim >= catAnimations.length) curAnim = 0;
-            requestAnimationFrame(update);
-        }*/
         requestAnimationFrame(update);
     }
 }
@@ -2071,7 +2020,6 @@ class MainLoadingScene{
 class SummoningCatScene{
     constructor(game){
         this.game = game;
-
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
