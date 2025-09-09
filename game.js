@@ -7,6 +7,48 @@ const floor = Math.floor;
 var songBgm = {songData: [{ i: [0, 0, 140, 0, 0, 0, 140, 0, 0, 255, 158, 158, 158, 0, 0, 0, 0, 51, 2, 1, 2, 58, 239, 0, 32, 88, 1, 157, 2 ],p: [1,1,1,1],c: [{n: [161,,,,,,,,,,,,,,,,163,,,,,,,,159],f: []}]},{ i: [0, 91, 128, 0, 0, 95, 128, 12, 0, 0, 12, 0, 72, 0, 0, 0, 0, 0, 0, 0, 2, 255, 0, 0, 32, 83, 3, 130, 4 ],p: [1,1,2,1],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144],f: []},{n: [156,,163,,161,,159,,158,,159,,158,,156,,156,,163,,161,,159,,158,,159,,158,,168],f: []}]},{ i: [0, 16, 133, 0, 0, 28, 126, 12, 0, 0, 2, 0, 60, 0, 0, 0, 0, 0, 0, 0, 2, 91, 0, 0, 32, 47, 3, 157, 2 ],p: [1,2,1,2],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144],f: []},{n: [168,,175,,173,,171,,170,,171,,170,,168,,168,,175,,173,,171,,170,,171,,170,,168],f: []}]},{ i: [0, 255, 116, 79, 0, 255, 116, 0, 83, 0, 4, 6, 69, 52, 0, 0, 0, 0, 0, 0, 2, 14, 0, 0, 32, 0, 0, 0, 0 ],p: [1,1,1,1],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144,,,159,,,,159,,,,159,,,,,,,,,,,,159,,159],f: []}]},],rowLen: 8269,   patternLen: 32,  endPattern: 3,  numChannels: 4  };
 // const EMOJI = G.getEmojiSprite(`💓`,64,1.3);
 // const EMOJI = G.getEmojiSprite(`△`,64,1.3);
+function ccc(ctx,color,x,y,w,h,r1,r2){
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(x,y,w,h,r1,r2,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+}
+function circleLineIntersection(x0, y0, r, a, b) {
+    var A = 1 + a*a;
+    var B = 2*a*(b-y0) - 2*x0;
+    var C = x0*x0 + (b-y0)*(b-y0) - r*r;
+    var D = B*B - 4*A*C;
+    if (D < 0) return []; // No intersection
+    if (D === 0) {
+        var x = -B/(2*A);
+        var y = a*x + b;
+        return [{x, y}];
+    }
+    var sqrtD = Math.sqrt(D);
+    var x1 = (-B + sqrtD)/(2*A);
+    var x2 = (-B - sqrtD)/(2*A);
+    return [
+        {x: x1, y: a*x1 + b},
+        {x: x2, y: a*x2 + b}
+    ];
+}
+function drawLineOnCanvas(ctx, a, b, color = '#000', width = 2) {
+    const w = ctx.canvas.width;
+    const h = ctx.canvas.height;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    // Compute y at x=0 and x=w
+    let y0 = a * 0 + b;
+    let y1 = a * w + b;
+    ctx.moveTo(0, y0);
+    ctx.lineTo(w, y1);
+    ctx.stroke();
+    ctx.restore();
+}
 class SpriteEngine{
     constructor(img){
         var imgCanvas = G.imgToCanvas(img);
@@ -84,6 +126,21 @@ class SpriteEngine{
             sprites.push(clone);
         }
         return sprites;
+    }
+    ccc(ctx,color,x,y,w,h,r1,r2){
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.ellipse(x,y,w,h,r1,r2,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+    }
+    Cave(w,h){
+        var canvas = G.makeCanvas(CELLSIZE*3,CELLSIZE*3);
+        var emoji = G.getEmojiSprite(`🪨`,CELLSIZE*3.5,1.3);
+        canvas.ctx.drawImage(emoji,0,0);
+        ccc(canvas.ctx,'#000',canvas.w/1.6,canvas.h,canvas.w/4,canvas.h/3,0,0);
+        return canvas;
     }
 }
 class Clickable{
@@ -469,6 +526,12 @@ class GameMap{
             }
         }
         return pointPathNorm;
+    }
+}
+class MobCard{
+    constructor(){
+        var mouse = '🐁';
+
     }
 }
 class Cat{
@@ -1149,13 +1212,16 @@ class G{
         }
         return canvas;
     }
-    static MakeCircle(r,stroke = null,fill = null){
+    static MakeCircle(r,stroke = null,fill = null, sw = 1){
         var s = G.makeCanvas(r*2+2,r*2+2);
         var ctx = s.ctx;
+        ctx.save();
+        ctx.lineWidth = sw;
         ctx.beginPath();
         ctx.arc(s.width/2,s.height/2,r,0,Math.PI * 2,false);
         if(stroke != null){ctx.strokeStyle = stroke;ctx.stroke();}
         if(fill != null){ctx.fillStyle = fill;ctx.fill();}
+        ctx.restore();
         return s;
     }
     static movePointToward(pos,rotation,distance){
@@ -1649,7 +1715,7 @@ class Game extends GameEnginge{
         super(c);
         // this.canvasDim = {w :GameDimC*CELLSIZE,h :GameDimR*CELLSIZE};
         this.canvasDim = {w :600 , h :600};
-        document.body.append(G.getEmojiSprite(`🐈‍⬛`,32,1.3));
+        // document.body.append(G.getEmojiSprite(`🐈‍⬛`,32,1.3));
         // document.body.append(G.getEmojiSprite(`🐈‍⬛`,64,1.3));
         // document.body.append(G.getEmojiSprite(`🚗`,64,1.3));
         // return;
@@ -1657,6 +1723,7 @@ class Game extends GameEnginge{
             this.cellSize = CELLSIZE;
             this.spriteEngine = new SpriteEngine(img);
             this.objects = [];
+            // document.body.append(this.spriteEngine.Cave());
             // var cat = new Cat(this);
             // var catincar = cat.CatInCar();
             // document.body.append(catincar);
@@ -1908,7 +1975,8 @@ class Game extends GameEnginge{
         return canvas;
     }
     getMainMenuBg(canvas){
-        var scene = new MainLoadingScene(this);
+        // var scene = new MainLoadingScene(this);
+        var scene = new SummoningCatScene(this);
         scene.draw(canvas);
         function update(t){
             scene.update(t);
@@ -2020,6 +2088,51 @@ class MainLoadingScene{
 class SummoningCatScene{
     constructor(game){
         this.game = game;
+        this.cat = new Cat(game);
+        this.catIdle = this.cat.Idle();
+        this.catIdleShadow = G.GenShadow(this.catIdle,2,'#fff');
+        this.canvas = G.makeCanvas(game.canvasDim.w,game.canvasDim.h);
+        this.space = G.randomPattern('#000','#fff',0.001,this.canvas.w*3,this.canvas.h);
+
+        
+        this.circlesprite = G.MakeCircle(CELLSIZE*5,'#fff',null,3);
+        var centerY = this.canvas.h - this.circlesprite.h/2 - CELLSIZE;
+        var circle = {x : this.canvas.w/2, y : centerY, r : this.circlesprite/2};
+        
+        var lines = [
+            {a : 0 , b : centerY - CELLSIZE*2},
+            {a : 0 , b : centerY },
+            {a : 0 , b : centerY + CELLSIZE*2},
+        ];
+
+        var verticies = lines.map(l=>
+            circleLineIntersection(circle.x,circle.y,circle.r,l.a,l.b)
+        );
+        this.circle = circle;
+        this.verticies = verticies;
+
+        
+    }
+    draw(canvas){
+        canvas.ctx.drawImage(this.canvas,0,0);
+    }
+    update(t){
+        var randSpaceX = G.randInt(0,this.space.w-this.canvas.w);
+        this.canvas.ctx.drawImage(this.space,
+            0,0,
+            randSpaceX,
+            this.canvas.h,
+            0,
+            0,
+            this.canvas.w,
+            this.canvas.h,
+        );
+        this.canvas.ctx.drawImage(this.circlesprite,
+            this.circle.x - this.circlesprite.w/2,
+            this.circle.y - this.circlesprite.h/2
+        );
+
+
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
