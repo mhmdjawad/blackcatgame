@@ -41,13 +41,29 @@ function drawLineOnCanvas(ctx, a, b, color = '#000', width = 2) {
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
     ctx.beginPath();
-    // Compute y at x=0 and x=w
-    let y0 = a * 0 + b;
-    let y1 = a * w + b;
-    ctx.moveTo(0, y0);
-    ctx.lineTo(w, y1);
+    if(a == Infinity){
+        ctx.moveTo(b, 0);
+        ctx.lineTo(b, h);
+    }
+    else{
+        // Compute y at x=0 and x=w
+        let y0 = a * 0 + b;
+        let y1 = a * w + b;
+        ctx.moveTo(0, y0);
+        ctx.lineTo(w, y1);
+    }
     ctx.stroke();
     ctx.restore();
+}
+function pointsOnCircle(cx, cy, r, n) {
+    const points = [];
+    for (let i = 0; i < n; i++) {
+        const angle = (2 * Math.PI * i) / n;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        points.push({ x, y });
+    }
+    return points;
 }
 class SpriteEngine{
     constructor(img){
@@ -1997,7 +2013,6 @@ class MainLoadingScene{
         this.catWalkingInX = 0;
         this.credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
         this.space = G.randomPattern('#aaa','#fff',0.001,this.canvas.w*3,this.canvas.h);
-
         this.LogoY = this.canvas.h/2 + 64;
         this.CatWalkingAnimationObj = {
             sprites : this.catWalkAnimation,
@@ -2094,23 +2109,19 @@ class SummoningCatScene{
         this.canvas = G.makeCanvas(game.canvasDim.w,game.canvasDim.h);
         this.space = G.randomPattern('#000','#fff',0.001,this.canvas.w*3,this.canvas.h);
 
+        this.elements = [
+            G.getEmojiSprite(`💓`,64,1.3)
+        ]
         
-        this.circlesprite = G.MakeCircle(CELLSIZE*5,'#fff',null,3);
+        this.circlesprite = G.MakeCircle(CELLSIZE*4,'#fff',null,3);
+        this.pointsprite = G.MakeCircle(CELLSIZE/9,'#00f','#00f',3);
+
         var centerY = this.canvas.h - this.circlesprite.h/2 - CELLSIZE;
-        var circle = {x : this.canvas.w/2, y : centerY, r : this.circlesprite/2};
-        
-        var lines = [
-            {a : 0 , b : centerY - CELLSIZE*2},
-            {a : 0 , b : centerY },
-            {a : 0 , b : centerY + CELLSIZE*2},
-        ];
-
-        var verticies = lines.map(l=>
-            circleLineIntersection(circle.x,circle.y,circle.r,l.a,l.b)
-        );
+        var centerX = this.canvas.w/2;
+        var circle = {x : this.canvas.w/2, y : centerY, r : this.circlesprite.w/2};
+        this.circlepoints = pointsOnCircle(circle.x,circle.y,circle.r,50);
+        console.log(this.circlepoints);
         this.circle = circle;
-        this.verticies = verticies;
-
         
     }
     draw(canvas){
@@ -2131,7 +2142,12 @@ class SummoningCatScene{
             this.circle.x - this.circlesprite.w/2,
             this.circle.y - this.circlesprite.h/2
         );
-
+        this.circlepoints.forEach(pt => {
+            this.canvas.ctx.drawImage(this.pointsprite,
+                pt.x - this.pointsprite.w/2,
+                pt.y - this.pointsprite.h/2
+            );
+        })
 
     }
 }
