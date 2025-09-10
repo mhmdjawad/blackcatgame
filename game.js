@@ -4,6 +4,7 @@ let GameDimC = 10;
 const MAZESIZE = 50;
 const SOUNDVOLUME = 0.15;
 const floor = Math.floor;
+const ELEMENTS = ['🔥','💧','🌱','🌪️','⚡','☀️','🌑'];
 var songBgm = {songData: [{ i: [0, 0, 140, 0, 0, 0, 140, 0, 0, 255, 158, 158, 158, 0, 0, 0, 0, 51, 2, 1, 2, 58, 239, 0, 32, 88, 1, 157, 2 ],p: [1,1,1,1],c: [{n: [161,,,,,,,,,,,,,,,,163,,,,,,,,159],f: []}]},{ i: [0, 91, 128, 0, 0, 95, 128, 12, 0, 0, 12, 0, 72, 0, 0, 0, 0, 0, 0, 0, 2, 255, 0, 0, 32, 83, 3, 130, 4 ],p: [1,1,2,1],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144],f: []},{n: [156,,163,,161,,159,,158,,159,,158,,156,,156,,163,,161,,159,,158,,159,,158,,168],f: []}]},{ i: [0, 16, 133, 0, 0, 28, 126, 12, 0, 0, 2, 0, 60, 0, 0, 0, 0, 0, 0, 0, 2, 91, 0, 0, 32, 47, 3, 157, 2 ],p: [1,2,1,2],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144],f: []},{n: [168,,175,,173,,171,,170,,171,,170,,168,,168,,175,,173,,171,,170,,171,,170,,168],f: []}]},{ i: [0, 255, 116, 79, 0, 255, 116, 0, 83, 0, 4, 6, 69, 52, 0, 0, 0, 0, 0, 0, 2, 14, 0, 0, 32, 0, 0, 0, 0 ],p: [1,1,1,1],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144,,,159,,,,159,,,,159,,,,,,,,,,,,159,,159],f: []}]},],rowLen: 8269,   patternLen: 32,  endPattern: 3,  numChannels: 4  };
 // const EMOJI = G.getEmojiSprite(`💓`,64,1.3);
 // const EMOJI = G.getEmojiSprite(`△`,64,1.3);
@@ -300,7 +301,7 @@ class GameMap{
         var castle = G.getEmojiSprite(`🏰`,CELLSIZE*4,1.3);
         var store = G.getEmojiSprite(`🏪`,CELLSIZE*3,1.3);
         var tent = G.getEmojiSprite(`⛺`,CELLSIZE*3,1.3);
-        var stoneBrickWall = G.brickPattern('#afafaf','#6d6c6c',4);
+        var stoneBrickWall = this.generateCozyWallTile(CELLSIZE);
         this.locations = [];
         this.colordict = [
             {c:'#99e550',o: 0, l:'', s: undefined},
@@ -376,6 +377,55 @@ class GameMap{
             dy, 
             dWidth, 
             dHeight);
+    }
+    generateCozyWallTile(tileSize = 64) {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = tileSize;
+        const ctx = canvas.getContext('2d');
+
+        // Background color
+        ctx.fillStyle = '#e6d3b3'; // warm beige
+        ctx.fillRect(0, 0, tileSize, tileSize);
+
+        // Stone colors
+        const stoneColors = ['#d1bfa3', '#c2ad8f', '#b8a07d', '#e0ceb0'];
+
+        // Draw rounded stones in a staggered pattern
+        const rows = 3, cols = 4;
+        const stoneW = tileSize / cols * 0.9;
+        const stoneH = tileSize / rows * 0.7;
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                // Stagger every other row
+                let x = col * tileSize / cols + ((row % 2) * tileSize / (cols * 2));
+                let y = row * tileSize / rows;
+                ctx.beginPath();
+                ctx.ellipse(
+                    x + stoneW / 2,
+                    y + stoneH / 2,
+                    stoneW / 2,
+                    stoneH / 2,
+                    0,
+                    0,
+                    2 * Math.PI
+                );
+                ctx.fillStyle = stoneColors[Math.floor(Math.random() * stoneColors.length)];
+                ctx.shadowColor = '#bba98a';
+                ctx.shadowBlur = 4;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // Optional: subtle highlight
+        ctx.globalAlpha = 0.08;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(tileSize * 0.7, tileSize * 0.3, tileSize * 0.25, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        return canvas;
     }
     GenWaterTile(w =64, h = 64){
         const canvas = G.makeCanvas(w, h);
@@ -1387,6 +1437,10 @@ class G{
         
         callback(G.Point({x,y}));
     }
+    static magnifyByMatrix(canvas,mult = 2){
+        var mat = G.getColorMatrix(canvas);
+        return G.colorsMatrixToSprite(mat,mult);
+    }
     static rand (a=1, b=0){ return b + (a-b)*Math.random();}
     static randInt (a=1, b=0){ return G.rand(a,b)|0;}
 }
@@ -1810,9 +1864,6 @@ class Game extends GameEnginge{
         var nav = G.GenTable(navItems.length,1);
         for(let i in navItems){
             var dom = G.makeDom(navItems[i].html)
-            dom.style.width = `${this.canvasDim.w * 0.9}px`;
-            dom.style.fontSize = `24pt`;
-
             nav.entities[i][0].append(dom);
             nav.entities[i][0].onclick = ()=>{
                 this.ApplyMenuItem(navItems[i].f);
@@ -1832,7 +1883,7 @@ class Game extends GameEnginge{
         this.player = new Player(this);
         
         this.menuclickables = [
-            new Clickable(0,0,CELLSIZE,CELLSIZE,G.getEmojiSprite('📋',CELLSIZE,1.4),(e)=>{this.showMenu()})
+            new Clickable(0,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('📋',CELLSIZE*1.5,1.4),(e)=>{this.showMenu()})
         ]
         this.objects = [
             this.player
@@ -2009,6 +2060,7 @@ class MainLoadingScene{
         this.catIdleAnimation = this.cat.IdleAnimation();
         this.catWalkAnimation = this.cat.WalkingAnimation();
         this.catWalkAnimationShadow = this.catWalkAnimation.map(x=> G.GenShadow(x,2,'#fff'));
+
         this.canvas = G.makeCanvas(game.canvasDim.w,game.canvasDim.h);
         this.catWalkingInX = 0;
         this.credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
@@ -2104,25 +2156,64 @@ class SummoningCatScene{
     constructor(game){
         this.game = game;
         this.cat = new Cat(game);
+        this.credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
         this.catIdle = this.cat.Idle();
         this.catIdleShadow = G.GenShadow(this.catIdle,2,'#fff');
+        this.catIdleShadow.ctx.drawImage(this.catIdle,1,1);
         this.canvas = G.makeCanvas(game.canvasDim.w,game.canvasDim.h);
-        this.space = G.randomPattern('#000','#fff',0.001,this.canvas.w*3,this.canvas.h);
+        this.catInBox = G.magnifyByMatrix(this.catIdleShadow,2);
 
+        this.catWalkAnimation = this.cat.WalkingAnimation();
+        this.catWalkAnimationShadow = this.catWalkAnimation.map(x=> G.GenShadow(x,2,'#fff'));
+        this.catWalkAnimationShadow.forEach((x,i)=> x.ctx.drawImage(this.catWalkAnimation[i],1,1));
+        this.catAnimations64 = this.catWalkAnimationShadow.map(x=> G.magnifyByMatrix(x,2));
+
+        this.space = G.randomPattern('#000','#fff',0.001,this.canvas.w*3,this.canvas.h);
+        this.rotspeed = 5;
         this.elements = [
-            G.getEmojiSprite(`💓`,64,1.3)
-        ]
-        
+            {s:G.getEmojiSprite('🔥',32,1.3),c:'#ee4000c7',i:0,t:this.rotspeed},
+            {s:G.getEmojiSprite('💧',32,1.3),c:'#00c7eec7',i:10,t:this.rotspeed},
+            {s:G.getEmojiSprite('🌱',32,1.3),c:'#805a05c7',i:20,t:this.rotspeed},
+            {s:G.getEmojiSprite('🌪️',32,1.3),c:'#cdcf84c7',i:30,t:this.rotspeed},
+            {s:G.getEmojiSprite('⚡',32,1.3),c:'#f9ff30c7',i:40,t:this.rotspeed},
+            {s:G.getEmojiSprite('☀️',32,1.3),c:'#f8ff00c7',i:50,t:this.rotspeed},
+            {s:G.getEmojiSprite('🌑',32,1.3),c:'#a83bf3c7',i:60,t:this.rotspeed},
+        ];
         this.circlesprite = G.MakeCircle(CELLSIZE*4,'#fff',null,3);
         this.pointsprite = G.MakeCircle(CELLSIZE/9,'#00f','#00f',3);
-
         var centerY = this.canvas.h - this.circlesprite.h/2 - CELLSIZE;
         var centerX = this.canvas.w/2;
         var circle = {x : this.canvas.w/2, y : centerY, r : this.circlesprite.w/2};
-        this.circlepoints = pointsOnCircle(circle.x,circle.y,circle.r,50);
-        console.log(this.circlepoints);
+        this.circlepoints = pointsOnCircle(circle.x,circle.y,circle.r,70);
         this.circle = circle;
-        
+        this.LogoY = centerY - this.circlesprite.h/2 - CELLSIZE;
+        this.CatWalkingAnimationObj = {
+            sprites : this.catAnimations64,
+            current : 0,
+            frames : 0,
+            framerate : 16,
+            locX :64,
+            locY : this.LogoY,
+        }
+        this.GenFamiliarSprite();
+    }
+    GenFamiliarSprite(){
+        var letters = ['T','H','E',' ','F','A','M','I','L','I','A','R'];
+        var canvas = G.makeCanvas(64*letters.length,CELLSIZE+4);
+        var cx = 0;
+        for(let i in letters){
+            var sprite = G.getTextSprite(letters[i],CELLSIZE,'#fff',1.1,'cursive');
+            var sprite2 = G.getTextSprite(letters[i],CELLSIZE,'#b90000',1.1,'cursive');
+            canvas.ctx.drawImage(sprite, cx+1,1);
+            canvas.ctx.drawImage(sprite2, cx, 0);
+            cx += CELLSIZE;
+        }
+        this.familiarSprite = {
+            sprite : canvas,
+            locX :128,
+            locY : this.LogoY,
+            currentShowing : 0
+        };
     }
     draw(canvas){
         canvas.ctx.drawImage(this.canvas,0,0);
@@ -2142,13 +2233,72 @@ class SummoningCatScene{
             this.circle.x - this.circlesprite.w/2,
             this.circle.y - this.circlesprite.h/2
         );
-        this.circlepoints.forEach(pt => {
-            this.canvas.ctx.drawImage(this.pointsprite,
-                pt.x - this.pointsprite.w/2,
-                pt.y - this.pointsprite.h/2
-            );
-        })
+        //draw cat walking
+        this.canvas.ctx.drawImage(
+            this.CatWalkingAnimationObj.sprites[this.CatWalkingAnimationObj.current],
+            this.circle.x - 32,
+            this.circle.y - 32
+        );
+        this.CatWalkingAnimationObj.frames++;
+        if(this.CatWalkingAnimationObj.frames > this.CatWalkingAnimationObj.framerate){
+            this.CatWalkingAnimationObj.frames = 0;
+            this.CatWalkingAnimationObj.current++;
+            if(this.CatWalkingAnimationObj.current >= this.CatWalkingAnimationObj.sprites.length){
+                this.CatWalkingAnimationObj.current = 0;
+            }
+        }
 
+        // this.canvas.ctx.drawImage(this.catInBox,
+        //     this.circle.x - this.catInBox.w/2,
+        //     this.circle.y - this.catInBox.h/2
+        // );
+
+
+
+        this.canvas.ctx.drawImage(this.familiarSprite.sprite, 
+            0,0,
+            this.familiarSprite.currentShowing,
+            this.familiarSprite.sprite.h,
+            this.familiarSprite.locX,
+            this.familiarSprite.locY,
+            this.familiarSprite.currentShowing,
+            this.familiarSprite.sprite.h,
+        );
+        this.familiarSprite.currentShowing += 4;
+        if(this.familiarSprite.currentShowing > this.familiarSprite.sprite.w){
+            this.familiarSprite.currentShowing = 0;
+        }
+
+        this.elements.forEach(el=>{
+            var pos = this.circlepoints[el.i % this.circlepoints.length];
+            this.canvas.ctx.drawImage(el.s,
+                pos.x - el.s.w/2,
+                pos.y - el.s.h/2
+            );
+            var randotherelement = this.elements.filter(x=>x!=el)[G.randInt(this.elements.length-1)];
+            var otherpos = this.circlepoints[randotherelement.i % this.circlepoints.length];
+            this.canvas.ctx.save();
+            this.canvas.ctx.strokeStyle = el.c;
+            this.canvas.ctx.lineWidth = 2;
+            this.canvas.ctx.beginPath();
+            this.canvas.ctx.moveTo(
+                pos.x,
+                pos.y
+            );
+            this.canvas.ctx.lineTo(
+                otherpos.x,
+                otherpos.y
+            );
+            this.canvas.ctx.stroke();
+            this.canvas.ctx.restore();
+
+
+
+
+            //move to next
+            el.t--;if(el.t <= 0){el.t = this.rotspeed;el.i++;}
+        });
+        this.canvas.ctx.drawImage(this.credit, 0,  this.canvas.h - this.credit.h);
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
