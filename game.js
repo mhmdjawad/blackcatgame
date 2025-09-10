@@ -1140,6 +1140,19 @@ class G{
         ctx.fillText(emoji,size/2, size*1.1/2);
         return canvas;
     }
+    static MakeRoundedRect(width, height, radius, color) {
+        var canvas = G.makeCanvas(height,width);
+        var ctx = canvas.ctx;
+        var c = G.MakeCircle(width*radius/100,null,color);
+        ctx.fillStyle = color;
+        ctx.drawImage(c,0,0);
+        ctx.drawImage(c,width-c.width,0);
+        ctx.drawImage(c,width-c.width,height-c.height);
+        ctx.drawImage(c,0,height-c.height);
+        ctx.fillRect(c.width/2,1,width-c.width,height-2);
+        ctx.fillRect(1,c.width/2,width-2,height-c.width);
+        return canvas;
+    }
     static getTextSprite(text,size, color,  factor = 0.8, font = 'sans-serif'){
         text = text.toUpperCase();
         let canvas = G.makeCanvas(size * text.length, size);
@@ -1764,31 +1777,563 @@ class Minigame1{
         requestAnimationFrame(newtime=>this.update(newtime));
     }
 }
+class Collection{
+    constructor(){
+        this.coordinates = new Set();
+        this.objects = [];
+        this.score = 0;
+    }
+    length() {return this.objects.length}
+    removeLast(){
+        var last = this.objects.pop();
+        const key = JSON.stringify(last);
+        this.coordinates.delete(key);
+        this.score = this.getSquenceScore();
+    }
+    getLast(){
+        if(this.objects.length > 0) return this.objects[this.objects.length - 1];
+    }
+    getbeforeLast(){
+        if(this.objects.length > 1){
+            return this.objects[this.objects.length - 2];
+        }
+    }
+    add(obj){
+        const key = JSON.stringify(obj);
+        if (!this.coordinates.has(key)) {
+            this.coordinates.add(key);
+            this.objects.push(obj);
+            
+            return true;
+        }
+        return false;
+    }
+    has(obj){
+        return this.coordinates.has(JSON.stringify(obj));
+    }
+    getAll(){
+        return [...this.objects];
+    }
+    getSequence(){
+        var vals = this.objects.map(x=>x.val);
+        if(vals.length == 0) return ' ';
+        return vals.join('');
+    }
+    getSquenceScore(){
+        return 0;
+    }
+}
+class MergeBoard{
+    constructor(game,settings){
+        this.game = game;
+        this.w = settings.w;
+        this.h = settings.h;
+        this.x = settings.x;
+        this.y = settings.y;
+        this.borderSprite = G.MakeRect(this.w,this.h,4,'#fff');
+        this.circleSprite = G.MakeCircle(CELLSIZE/6,'#fff','#aaa');
+        this.circleSpritePointer = G.MakeCircle(CELLSIZE/2+1,'#ccc',null);
+        this.tileBorderSprite = G.MakeRect(CELLSIZE,CELLSIZE,1,'#bbb');
+        this.rows = Math.min(this.h/CELLSIZE,15);
+        this.cols = Math.min(this.w/CELLSIZE,15);
+        if(settings.profile){
+            this.level = LevelClass.GetLevelByName(settings.profile.Sura);
+            if(settings.profile.Data){
+                this.level.foundWordsDict = settings.profile.Data;
+            }
+        }
+        var words = this.level.wordsDict;
+        console.log(words);
+        this.colors = G.getCSSVariablesFromClass('colorspectrum').map(x=>x.v);
+        // this.colors = ['#bf0a0a', '#ff5500', '#a9790b', '#8fb008', '#47a906', '#04a876', '#0895b9', '#0a1d79', '#5705a0', '#8f09a3', '#ea48a4', '#530207', '#bf4000', '#8f0808', '#6b8406', '#7f5b08', '#357f05', '#037e59', '#06708b', '#08165b', '#410478', '#6b077a', '#b0367b', '#3e0205'];
+        this.pool = this.level.lettersPool;
+        this.poolSprites = {};
+        this.markedCenters = new Collection();
+        this.currentPointer = {x:-Infinity,y:-Infinity};
+        this.newBoard();
+        this.resetBoard();
+    }
+    newBoard(){
+        console.log('reset board');
+        this.currentPointer = {x:-Infinity,y:-Infinity};
+        this.markedCenters = new Collection();
+        var grid = [];
+        for(let i = 0; i < this.rows;i++){
+            grid[i] = [];
+            for(let j = 0; j < this.cols;j++){
+                var cx = this.x + j * CELLSIZE + CELLSIZE/2;
+                var cy = this.y + i * CELLSIZE + CELLSIZE/2;
+                var center = new Point({x: cx,y:cy});
+                var randomval = this.pool[G.randInt(0,this.pool.length)]
+                grid[i][j] = {
+                    r:i,
+                    c:j,
+                    center : center,
+                    val : randomval,
+                    sprite: this.getSprite(randomval)
+                };
+            }
+        }
+        this.grid = grid;
+    }
+    resetBoard(){
+        this.grid.flat().forEach(x=> {
+            x.val = 0;
+        });
+        this.grid = this.applyGravity(this.grid,this.rows,this.cols,(go) => go.val == 0,(r,c) => this.getNewEntity(r,c));
+        this.resetGridCenters(this.grid);
+        //add a helper for a word
+        var words = Object.keys(this.level.wordsDict);
+        var chars = words.join('').split('');
+        var current = 0;
+        for(let i = 0; i < this.rows;i++){
+            for(let j = 0; j < this.cols;j++){
+                var char = chars[current];
+                if(G.rand() < 0.45){
+                    char = chars[G.randInt(0,chars.length)];
+                }
+                this.grid[i][j].val = char;
+                this.grid[i][j].sprite = this.getSprite(char);
+                current++;
+                if(current > chars.length) current = 0;
+            }
+        }
+        for(let i = 0 ; i < 4 ; i++){
+            var randrow = G.randInt(0,this.rows);
+            var randword = words[G.randInt(0,words.length)];
+            var ix = 0;
+            console.log(`adding word ${randword} at ${randrow}`);
+            for(let j = randword.length-1 ; j >= 0 ;j--){
+                if(this.grid[randrow].length < ix) break;
+                this.grid[randrow][ix].val = randword[j];
+                this.grid[randrow][ix].sprite = this.getSprite(randword[j]);
+                ix++;
+            }
+        }
+    }
+    getSprite(v,light){
+        if(light == 1){
+            if(PixelFontArab.SpritesDictLight[v]){
+                return PixelFontArab.SpritesDictLight[v];
+            }
+            else return PixelFontArab.SpritesDictLight[' '];
+        }
+        else{
+            if(PixelFontArab.SpritesDict[v]){
+                return PixelFontArab.SpritesDict[v];
+            }
+            else return PixelFontArab.SpritesDict[' '];
+        }
+        
+    }
+    applyGravity(grid,r,c, checkZeroFct, newEntity, inverse  = true){
+        if(grid.flat().find(x=> checkZeroFct(x)) == null) return grid;
+        for (let col = 0; col < c; col++) {
+            const nonMoving = [];
+            for (let row = 0; row < r; row++) {
+                if (!checkZeroFct(grid[row][col])) {
+                    nonMoving.push(grid[row][col]);
+                }
+            }
+            if (inverse) {
+                for (let row = 0; row < r; row++) {
+                    grid[row][col] = row >= r - nonMoving.length 
+                        ? nonMoving[row - (r - nonMoving.length)] 
+                        : newEntity(row, col);
+                }
+            } else {
+                for (let row = 0; row < r; row++) {
+                    grid[row][col] = row < nonMoving.length ? nonMoving[row] : newEntity(row, col);
+                }
+            }
+        }
+        return this.applyGravity(grid,r,c, checkZeroFct, newEntity, inverse);
+    }
+    getFoundWordsTable(){
+        var html = ``;
+        html += `<table class="tableshowprogress">`;
+        html += `<tr><td>الكلمة</td><td>عدد المرات</td></tr>`;
+        var alldata = this.level.wordsDict;
+        var data = this.level.foundWordsDict;
+        var lenAll = Object.keys(this.level.wordsDict).length;
+        var lenFound = Object.keys(this.level.foundWordsDict).length;
+        for(let i in data){
+            html += `<tr><td>${i}</td><td>${data[i]} / ${alldata[i]}</td></tr>`;
+        }
+        html += `<tr><td>تقدم الكلمات</td><td>${lenAll} / ${lenFound}</td></tr>`;
+        if(lenAll == lenFound){
+            html += `<tr><td colspan=2>تم إيجاد جميع الكلمات</td></tr>`;
+        }
+        html += `</table>`;
+        return html;
+    }
+    handleWordFound(seq){
+        if(this.level.foundWordsDict[seq]){
+            this.level.foundWordsDict[seq] + 1;
+        }
+        else{
+            this.level.foundWordsDict[seq] = 1;
+        }
+        this.showProgress();
+        this.markedCenters = new Collection();
+    }
+    showProgress(){
+        if(this.game.dialog != null){this.game.dialog.remove();}
+        this.game.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
+        this.game.dialog.style.width = `${GameDimC*CELLSIZE}px`;
+        var table = this.getFoundWordsTable();
+        this.game.dialog.append(`التقدم الحالي`);
+        this.game.dialog.append(G.makeDom(table));
+        this.game.dialog.append(this.game.genNavButton('حفظ',()=>{
+            this.game.saveGameAuto(true);
+            this.game.dialog.remove();
+        },'fullwbtn green'));
+        this.game.dialog.append(this.game.genNavButton('إغلاق',()=>{
+            this.game.saveGameAuto(false);
+            this.game.dialog.remove();
+        },'fullwbtn red'));
+        this.game.body.append(this.game.dialog);
+    }
+    handleEnd(pos){
+        if(this.markedCenters.objects.length > 0){
+            var seq = this.markedCenters.getSequence();
+            if(this.level.wordsDict[seq]){
+                this.markedCenters.objects.forEach(x=> {
+                    this.grid[x.r][x.c].val = 0;
+                });
+                this.grid = this.applyGravity(this.grid,this.rows,this.cols,(go) => go.val == 0,(r,c) => this.getNewEntity(r,c));
+                this.resetGridCenters(this.grid);
+                this.handleWordFound(seq);
+            }
+            else{
+                console.log('word not found',seq);
+            }
+        }
+        this.isClick = false;
+        this.markedCenters = new Collection();
+    }
+    resetGridCenters(grid){
+        for(let i in grid){
+            for(let j in grid[i]){
+                var cx = this.x + j * CELLSIZE + CELLSIZE/2;
+                var cy = this.y + i * CELLSIZE + CELLSIZE/2;
+                var center = new Point({x: cx,y:cy});
+                grid[i][j].center = center;
+                grid[i][j].r = i;
+                grid[i][j].c = j;
+            }
+        }
+    }
+    getNewEntity(r,c){
+        var cx = this.x + r * CELLSIZE + CELLSIZE/2;
+        var cy = this.y + c * CELLSIZE + CELLSIZE/2;
+        var center = new Point({x: cx,y:cy});
+        var randomval = this.pool[G.randInt(0,this.pool.length)]
+        return {
+            center : center,
+            val: randomval,
+            sprite: this.getSprite(randomval)
+        }
+    }
+    getGridAsArray(grid){
+        var arr = [];
+        for(let i in grid){
+            arr[i] = [];
+            for(let j in grid[i]){
+                arr[i][j] = grid[i][j].val;
+            }
+        }
+        return arr;
+    }
+    handleStart(pos){
+        console.log(pos,this.currentPointer);
+        this.isClick = true;
+    }
+    handleMove(pos){
+        var pointpos = new Point(pos);
+        var gridobj = this.grid.flat().find(o => pointpos.distance(o.center) < CELLSIZE/2);
+        if(gridobj != undefined){
+            var NormalizedCenter = this.currentPointer = gridobj.center;
+            if(this.isClick){
+                var lastinsert = this.markedCenters.getLast();
+                var beforelastinsert = this.markedCenters.getbeforeLast();
+                if(lastinsert == null || lastinsert == undefined){
+                    this.markedCenters.add(gridobj);
+                }
+                else if(beforelastinsert != null && NormalizedCenter.distance(beforelastinsert.center) < CELLSIZE/2){
+                    this.markedCenters.removeLast();
+                }
+                else if(NormalizedCenter.distance(lastinsert.center) < CELLSIZE*1.5){
+                    this.markedCenters.add(gridobj);
+                    // if(gridobj.val == lastinsert.val){
+                    //     this.markedCenters.add(gridobj);
+                    // }
+                    // else if(this.markedCenters.length() > 1 && gridobj.val == lastinsert.val+1){
+                    //     this.markedCenters.add(gridobj);
+                    // }
+                }
+            }
+        }
+    }
+    update(t){
+    }
+    getGussingWordSprite(){
+        var sequence = this.markedCenters.getSequence();
+        var w = PixelFontArab.SpritesDict[' '].w;
+        var h = PixelFontArab.SpritesDict[' '].h;
+        var canvas = G.makeCanvas(sequence.length * w,h);
+        if(sequence == ' '){
+            return canvas;
+        }
+        if(this.level.wordsDict[sequence]){
+            canvas.fill('green');
+        }
+        else{
+            canvas.fill('red');
+        }
+        var cx = 0;
+        for(let i = sequence.length -1;i >=0; i--){
+            var c = sequence[i];
+            var s = PixelFontArab.SpritesDict[c];
+            canvas.ctx.drawImage(s,cx,0);
+            cx += w;
+        }
+        return canvas;
+    }
+    draw(ctx){
+        var ts1 = this.getGussingWordSprite();
+        ctx.drawImage(ts1,
+            this.x + this.w/2 - ts1.w/2,
+            this.y-CELLSIZE
+        );
+        ctx.drawImage(this.circleSpritePointer,
+            this.currentPointer.x - this.circleSpritePointer.w/2,
+            this.currentPointer.y - this.circleSpritePointer.h/2
+        );
+        var markedCentersObj = this.markedCenters.getAll();
+        if(markedCentersObj.length > 1){
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = CELLSIZE/6;
+            ctx.beginPath();
+            ctx.moveTo(markedCentersObj[0].center.x,markedCentersObj[0].center.y);
+            for(let i = 1;i < markedCentersObj.length;i++){
+                ctx.lineTo(markedCentersObj[i].center.x,markedCentersObj[i].center.y);
+            }
+            ctx.stroke();
+        }
+        for(let i = 0 ; i < this.rows ;i++){
+            for(let j = 0 ; j < this.cols ;j++){
+                
+                var gobj = this.grid[i][j];
+                var light = false;
+                if(((i % 2 == 0 || j %2 == 0) && !(i % 2 == 0 && j %2 == 0) )){
+                    light = true;
+                }
+                var sprite = this.getSprite(gobj.val,light);
+                var cx = gobj.center.x - sprite.w/2;
+                var cy = gobj.center.y - sprite.h/2;
+                ctx.drawImage(sprite,cx,cy);
+            }
+        }
+    }
+}
 class CombatScene{
     constructor(game){
         this.game = game;
+        this.blocksize = CELLSIZE*1.7;
+        this.tilesize = this.blocksize * 0.9;
+        this.currentgamecanvas = G.imgToCanvas(game.canvas);
+        this.canvasDim = game.canvasDim;
+        game.body.innerHTML = '';
+        this.canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
+        game.body.append(this.canvas);
+        this.isClick = false;
+        this.markedCenters = new Collection();
+        this.roundRectS1 = G.MakeRoundedRect(this.tilesize, this.tilesize, 12.5, '#fff');
+        this.roundRectS2 = G.MakeRoundedRect(this.tilesize, this.tilesize, 12.5, '#8c8c8c');
+
+        this.elementals = [
+            {v:'m',s:this.getSprite('🔮',false), sd:this.getSprite('🔮',true) ,c:'#f00'},
+            {v:'f',s:this.getSprite('🔥',false), sd:this.getSprite('🔥',true) ,c:'#f00'},
+            {v:'w',s:this.getSprite('💧',false), sd:this.getSprite('💧',true) ,c:'#00f'},
+            {v:'e',s:this.getSprite('🌱',false), sd:this.getSprite('🌱',true) ,c:'#0a0'},
+            {v:'i',s:this.getSprite('🌪️',false), sd:this.getSprite('🌪️',true) ,c:'#aaa'},
+            {v:'z',s:this.getSprite('⚡',false), sd:this.getSprite('⚡',true) ,c:'#ff0'},
+            {v:'l',s:this.getSprite('☀️',false), sd:this.getSprite('☀️',true) ,c:'#ffb'},
+            {v:'d',s:this.getSprite('🌑',false), sd:this.getSprite('🌑',true) ,c:'#555'},
+        ]
+        this.w = this.canvas.w;
+        this.h = this.canvas.h;
+        this.x = 0;
+        this.y = this.canvas.h/2;
+        this.rows = Math.floor(this.canvas.h/this.blocksize/2);
+        this.cols = Math.floor(this.canvas.w/this.blocksize);
+
+
+        this.touchPos = null;
+        this.canvas.addEventListener('mousedown', (e) => handleStart(e));
+        this.canvas.addEventListener('mouseup', () => handleEnd());
+        this.canvas.addEventListener('mousemove', (e) => handleMove(e));
+        // Touch events
+        this.canvas.addEventListener('touchstart', (e) => handleStart(e));
+        this.canvas.addEventListener('touchend', () => handleEnd());
+        this.canvas.addEventListener('touchmove', (e) => handleMove(e));
+
+        var handleEnd =()=>{
+            console.log('end');
+            this.touchPos = null;
+            if(this.markedCenters.objects.length > 0){
+                var seq = this.markedCenters.getSequence();
+                console.log(seq);
+                // if(this.level.wordsDict[seq]){
+                //     this.markedCenters.objects.forEach(x=> {
+                //         this.grid[x.r][x.c].val = 0;
+                //     });
+                //     this.grid = this.applyGravity(this.grid,this.rows,this.cols,(go) => go.val == 0,(r,c) => this.getNewEntity(r,c));
+                //     this.resetGridCenters(this.grid);
+                //     this.handleWordFound(seq);
+                // }
+                // else{
+                //     console.log('word not found',seq);
+                // }
+            }
+            this.isClick = false;
+            this.markedCenters = new Collection();
+        }
+        var handleStart = (e)=>{
+            console.log('start');
+            this.isClick = true;
+            // G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt)=>{
+            //     this.touchPos = { x: pt.x, y: pt.y };
+            // });
+        }
+        var handleMove = (e)=>{
+            G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt)=>{
+                var pointpos = new Point(pt);
+                var gridobj = this.grid.flat().find(o => pointpos.distance(o.center) < this.blocksize/2);
+                if(gridobj != undefined){
+                    var NormalizedCenter = this.currentPointer = gridobj.center;
+                    if(this.isClick){
+                        var lastinsert = this.markedCenters.getLast();
+                        var beforelastinsert = this.markedCenters.getbeforeLast();
+                        if(lastinsert == null || lastinsert == undefined){
+                            this.markedCenters.add(gridobj);
+                        }
+                        else if(beforelastinsert != null && NormalizedCenter.distance(beforelastinsert.center) < this.blocksize/2){
+                            this.markedCenters.removeLast();
+                        }
+                        else if(NormalizedCenter.distance(lastinsert.center) < this.blocksize*1.5){
+                            this.markedCenters.add(gridobj);
+                        }
+                    }
+                }
+            });
+        }
+        this.newBoard();
+        this.update(0);
+    }
+    getGussingWordSprite(){
+        var sequence = this.markedCenters.getSequence();
+        var w = this.tilesize;
+        var h = this.tilesize;
+        var canvas = G.makeCanvas(sequence.length * w,h);
+        if(sequence == ' '){
+            return canvas;
+        }
+        var sprites = {}; this.elementals.forEach(x=> sprites[x.v] = x.s);
+
+        canvas.fill('#fff');
+        var cx = 0;
+        for(let i = sequence.length -1;i >=0; i--){
+            var c = sequence[i];
+            canvas.ctx.drawImage(sprites[c],cx,0);
+            cx += w;
+        }
+        return canvas;
+    }
+    getSprite(v,light){
+        var emojisprt = G.getEmojiSprite(v,this.tilesize,1.3);
+        if(light){
+            return G.fuseImage(this.roundRectS1,emojisprt);
+        }
+        else{
+            return G.fuseImage(this.roundRectS2,emojisprt);
+        }
     }
     update(t){
+        var ctx = this.canvas.ctx;
+        this.canvas.fill('#000');
+        // this.canvas.ctx.drawImage(this.currentgamecanvas,0,0);
+        ctx.fillStyle = '#fff';
+        ctx.fillText(t,10,10);
 
-    }
-    draw(ctx){
 
+        
+
+
+        var markedCentersObj = this.markedCenters.getAll();
+        if(markedCentersObj.length > 1){
+            var ts1 = this.getGussingWordSprite();
+            ctx.drawImage(ts1,
+                this.x + this.w/2 - ts1.w/2,
+                this.y-this.blocksize
+            );
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = this.blocksize/6;
+            ctx.beginPath();
+            ctx.moveTo(markedCentersObj[0].center.x,markedCentersObj[0].center.y);
+            for(let i = 1;i < markedCentersObj.length;i++){
+                ctx.lineTo(markedCentersObj[i].center.x,markedCentersObj[i].center.y);
+            }
+            ctx.stroke();
+        }
+        for(let i = 0 ; i < this.rows ;i++){
+            for(let j = 0 ; j < this.cols ;j++){
+                var gobj = this.grid[i][j];
+                var light = false;
+                if(((i % 2 == 0 || j %2 == 0) && !(i % 2 == 0 && j %2 == 0) )){
+                    light = true;
+                }
+                var elem = this.elementals.find(x=>x.v == gobj.val);
+                var sprite = light ? elem.sd : elem.s;
+                var cx = gobj.center.x - sprite.w/2;
+                var cy = gobj.center.y - sprite.h/2;
+                ctx.drawImage(sprite,cx,cy);
+            }
+        }
+        
+        requestAnimationFrame(newtime=>this.update(newtime));
     }
-}
-class MiniGameMemoryBlocks{
-    constructor(game){
-        this.game = game;
+    newBoard(){
+        console.log('reset board');
+        this.currentPointer = {x:-Infinity,y:-Infinity};
+        this.markedCenters = new Collection();
+        var grid = [];
+        for(let i = 0; i < this.rows;i++){
+            grid[i] = [];
+            for(let j = 0; j < this.cols;j++){
+                var cx = this.x + j * this.blocksize + this.blocksize/2;
+                var cy = this.y + i * this.blocksize + this.blocksize/2;
+                var center = new Point({x: cx,y:cy});
+                var randomval = this.elementals[G.randInt(0,this.elementals.length)]
+                grid[i][j] = {
+                    r:i,
+                    c:j,
+                    center : center,
+                    val : randomval.v,
+                    sprite: randomval.s
+                };
+            }
+        }
+        this.grid = grid;
+        console.log(grid);
     }
 }
 class Game extends GameEnginge{
     constructor(c){
         super(c);
-        // this.canvasDim = {w :GameDimC*CELLSIZE,h :GameDimR*CELLSIZE};
         this.canvasDim = {w :600 , h :600};
-        // document.body.append(G.getEmojiSprite(`🐈‍⬛`,32,1.3));
-        // document.body.append(G.getEmojiSprite(`🐈‍⬛`,64,1.3));
         // document.body.append(G.getEmojiSprite(`🚗`,64,1.3));
-        // return;
         G.loadImage('sh1.gif?'+Math.random(),img=>{
             this.cellSize = CELLSIZE;
             this.spriteEngine = new SpriteEngine(img);
@@ -1798,7 +2343,6 @@ class Game extends GameEnginge{
             // var catincar = cat.CatInCar();
             // document.body.append(catincar);
             // this.scene = new Minigame1(this);
-            // this.scene = new MainLoadingScene(this);
             this.mainScene();
         })
         return;
@@ -1837,10 +2381,10 @@ class Game extends GameEnginge{
         this.gameover = true;
         this.gamePased = true;
         this.resetBody();
-        var canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
-        canvas.fill('#000');
-        this.getMainMenuBg(canvas);
-        this.body.append(canvas);
+        this.canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
+        this.canvas.fill('#000');
+        this.getMainMenuBg(this.canvas);
+        this.body.append(this.canvas);
         this.showMenu();
     }
     showMenu(){
@@ -1851,6 +2395,9 @@ class Game extends GameEnginge{
         var navItems = [];
         if(this.gameover){
             navItems.push({html : '<button >New Game</button>', f:'newgame'});
+            navItems.push({html : '<button >Practice Combat</button>', f:'paracticecombat'});
+            navItems.push({html : '<button >Practice Alchmy</button>', f:'newmergelevel'});
+            navItems.push({html : '<button >Practice Spell</button>', f:'newmergelevel'});
         }
         else{
             navItems.push({html : '<button >Resume</button>', f:'resume'});
@@ -1961,6 +2508,11 @@ class Game extends GameEnginge{
             this.dialog.remove();
             this.mainScene();
         }
+        else if(item == 'paracticecombat'){
+            this.gamePased = true;
+            this.dialog.remove();
+            this.scene = new CombatScene(this);
+        }
     }
     parseNum(v){
         if(v >= 10000000000) return `${(v/10000000000).toFixed(1)}T`;
@@ -2042,7 +2594,6 @@ class Game extends GameEnginge{
         return canvas;
     }
     getMainMenuBg(canvas){
-        // var scene = new MainLoadingScene(this);
         var scene = new SummoningCatScene(this);
         scene.draw(canvas);
         function update(t){
@@ -2051,105 +2602,6 @@ class Game extends GameEnginge{
             requestAnimationFrame(update);
         }
         requestAnimationFrame(update);
-    }
-}
-class MainLoadingScene{
-    constructor(game){
-        this.cat = new Cat(game);
-        this.catIdle = this.cat.Idle();
-        this.catIdleAnimation = this.cat.IdleAnimation();
-        this.catWalkAnimation = this.cat.WalkingAnimation();
-        this.catWalkAnimationShadow = this.catWalkAnimation.map(x=> G.GenShadow(x,2,'#fff'));
-
-        this.canvas = G.makeCanvas(game.canvasDim.w,game.canvasDim.h);
-        this.catWalkingInX = 0;
-        this.credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
-        this.space = G.randomPattern('#aaa','#fff',0.001,this.canvas.w*3,this.canvas.h);
-        this.LogoY = this.canvas.h/2 + 64;
-        this.CatWalkingAnimationObj = {
-            sprites : this.catWalkAnimation,
-            shadows : this.catWalkAnimationShadow,
-            current : 0,
-            frames : 0,
-            framerate : 16,
-            locX :64,
-            locY : this.LogoY,
-        }
-        this.GenFamiliarSprite();
-        this.phase = 1;
-    }
-    draw(canvas){
-        canvas.ctx.drawImage(this.canvas,0,0);
-    }
-    GenFamiliarSprite(){
-        var letters = ['F','A','M','I','L','I','A','R'];
-        var canvas = G.makeCanvas(64*letters.length,CELLSIZE+4);
-        var cx = 0;
-        for(let i in letters){
-            var sprite = G.getTextSprite(letters[i],CELLSIZE,'#fff',1.1,'cursive');
-            var sprite2 = G.getTextSprite(letters[i],CELLSIZE,'#b90000',1.1,'cursive');
-            canvas.ctx.drawImage(sprite, cx+1,1);
-            canvas.ctx.drawImage(sprite2, cx, 0);
-            cx += CELLSIZE;
-        }
-
-        // var FamilarSpriteWhite = G.getTextSprite(`FAMILIAR`,   64, `#fff`, 1.5, 'cursive');
-        // var FamilarSpriteRed = G.getTextSprite(`FAMILIAR`,   64, `#b90000`, 1.5, 'cursive');
-        // var canvas = G.makeCanvas(FamilarSpriteRed.w + 4, FamilarSpriteRed.h + 4);
-        // canvas.ctx.drawImage(FamilarSpriteRed,1,1);
-        // canvas.ctx.drawImage(FamilarSpriteWhite,0,0);
-        
-        
-        this.familiarSprite = {
-            sprite : canvas,
-            locX :128,
-            locY : this.LogoY,
-            currentShowing : 0
-        };
-    }
-    update(){
-        var randSpaceX = G.randInt(0,this.space.w-this.canvas.w);
-        this.canvas.ctx.drawImage(this.space,
-            0,0,
-            randSpaceX,
-            this.canvas.h,
-            0,
-            0,
-            this.canvas.w,
-            this.canvas.h,
-        );
-        this.canvas.ctx.drawImage(this.credit, 0,  this.canvas.h - this.credit.h);
-        this.canvas.ctx.drawImage(this.CatWalkingAnimationObj.shadows[this.CatWalkingAnimationObj.current],
-            this.CatWalkingAnimationObj.locX-1,
-            this.CatWalkingAnimationObj.locY-1
-        );
-        this.canvas.ctx.drawImage(this.CatWalkingAnimationObj.sprites[this.CatWalkingAnimationObj.current],
-            this.CatWalkingAnimationObj.locX,
-            this.CatWalkingAnimationObj.locY
-        );
-        this.CatWalkingAnimationObj.frames++;
-        if(this.CatWalkingAnimationObj.frames > this.CatWalkingAnimationObj.framerate){
-            this.CatWalkingAnimationObj.frames = 0;
-            this.CatWalkingAnimationObj.current++;
-            if(this.CatWalkingAnimationObj.current >= this.CatWalkingAnimationObj.sprites.length){
-                this.CatWalkingAnimationObj.current = 0;
-            }
-        }
-        this.canvas.ctx.drawImage(this.familiarSprite.sprite, 
-            0,0,
-            this.familiarSprite.currentShowing,
-            this.familiarSprite.sprite.h,
-            this.familiarSprite.locX,
-            this.familiarSprite.locY,
-            this.familiarSprite.currentShowing,
-            this.familiarSprite.sprite.h,
-        );
-        this.familiarSprite.currentShowing += 4;
-        if(this.familiarSprite.currentShowing > this.familiarSprite.sprite.w){
-            this.familiarSprite.currentShowing = 0;
-        }
-
-
     }
 }
 class SummoningCatScene{
