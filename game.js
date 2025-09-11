@@ -1895,7 +1895,7 @@ class CombatScene{
         this.tilesize = this.blocksize * 0.82;
         this.currentgamecanvas = G.imgToCanvas(game.canvas);
         this.canvasDim = game.canvasDim;
-        // game.body.innerHTML = '';
+        game.body.innerHTML = '';
         this.canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
         this.w = this.canvas.w;
         this.h = this.canvas.h;
@@ -2265,8 +2265,6 @@ class Game extends GameEnginge{
         if(this.gameover){
             navItems.push({html : '<button >New Game</button>', f:'newgame'});
             navItems.push({html : '<button >Practice Combat</button>', f:'paracticecombat'});
-            navItems.push({html : '<button >Practice Alchmy</button>', f:'newmergelevel'});
-            navItems.push({html : '<button >Practice Spell</button>', f:'newmergelevel'});
         }
         else{
             navItems.push({html : '<button >Resume</button>', f:'resume'});
