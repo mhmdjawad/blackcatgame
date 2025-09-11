@@ -195,8 +195,8 @@ class SpriteEngine{
         return sprites;
     }
     Cave(w,h){
-        var canvas = G.makeCanvas(CELLSIZE*3,CELLSIZE*3);
-        var emoji = G.getEmojiSprite(`🪨`,CELLSIZE*3.5,1.3);
+        var canvas = G.makeCanvas(w,h);
+        var emoji = G.getEmojiSprite(`🪨`,w,1.3);
         canvas.ctx.drawImage(emoji,0,0);
         ccc(canvas.ctx,'#000',canvas.w/1.6,canvas.h,canvas.w/4,canvas.h/3,0,0);
         return canvas;
@@ -295,9 +295,8 @@ class GameMap{
         var house2 = G.getEmojiSprite(`🏠`,CELLSIZE*2,1.3);
         var church = G.getEmojiSprite(`⛪`,CELLSIZE*3,1.3);
         var townhall = G.getEmojiSprite(`🏫`,CELLSIZE*3,1.3);
-        var castle = G.getEmojiSprite(`🏰`,CELLSIZE*4,1.3);
-        var store = G.getEmojiSprite(`🏪`,CELLSIZE*3,1.3);
         var tent = G.getEmojiSprite(`⛺`,CELLSIZE*3,1.3);
+        var portal = G.getEmojiSprite(`🌀`,CELLSIZE*2,1.3);
         var stoneBrickWall = GameMap.GenCozyWallTile(CELLSIZE);
         this.locations = [];
         this.colordict = [
@@ -308,13 +307,14 @@ class GameMap{
             {c:'#d77bba',o: 1, l:'house2', s: house2},
             {c:'#d9a066',o: 0, l:'', s: dirt},
             {c:'#767676',o: 1, l:'', s: stoneBrickWall},
-            {c:'#df7126',o: 1, l:'castle', s: castle},
             {c:'#8f974a',o: 1, l:'church', s: church},
             {c:'#fbf236',o: 1, l:'townhall', s: townhall},
-            {c:'#ac3232',o: 1, l:'store', s: store},
             {c:'#663931',o: 0, l:'', s: walkway},
             {c:'#524b24',o: 1, l:'tent', s: tent},
+            {c:'#222034',o: 1, l:'portal', s: portal},
         ];
+        this.locations = [];
+
         this.blueprintasmatrix = G.getColorMatrix(game.spriteEngine.mapBlueprint,(r)=>{
             if(r == '') return null;
             return r;
