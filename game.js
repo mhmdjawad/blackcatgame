@@ -20,37 +20,43 @@ var ELEMENTALS = [
     {v:'d', e:'🌑', c:'#555'},
 ];
 var SPELLBOOK = [
-    {i : 'ff', r: 'm', isattack :false, dmg : 0 , spd : 0},
-    {i : 'ww', r: 'm', isattack :false, dmg : 0 , spd : 0},
-    {i : 'ee', r: 'm', isattack :false, dmg : 0 , spd : 0},
-    {i : 'ii', r: 'm', isattack :false, dmg : 0 , spd : 0},
-    {i : 'zz', r: 'm', isattack :false, dmg : 0 , spd : 0},
-    {i : 'll', r: 'm', isattack :false, dmg : 0 , spd : 0},
-    {i : 'dd', r: 'm', isattack :false, dmg : 0 , spd : 0},
-    {i : 'mf', r: 'f', isattack :true, dmg : 2 , spd : 0},
-    {i : 'mw', r: 'w', isattack :true, dmg : 2 , spd : 0},
-    {i : 'me', r: 'e', isattack :true, dmg : 2 , spd : 0},
-    {i : 'mi', r: 'i', isattack :true, dmg : 2 , spd : 0},
-    {i : 'mz', r: 'z', isattack :true, dmg : 2 , spd : 0},
-    {i : 'ml', r: 'l', isattack :true, dmg : 2 , spd : 0},
-    {i : 'md', r: 'd', isattack :true, dmg : 2 , spd : 0},
-    {i : 'mff', r: 'f', isattack :true, dmg : 4 , spd : 0},
-    {i : 'mww', r: 'w', isattack :true, dmg : 4 , spd : 0},
-    {i : 'mee', r: 'e', isattack :true, dmg : 4 , spd : 0},
-    {i : 'mii', r: 'i', isattack :true, dmg : 4 , spd : 0},
-    {i : 'mzz', r: 'z', isattack :true, dmg : 4 , spd : 0},
-    {i : 'mll', r: 'l', isattack :true, dmg : 4 , spd : 0},
-    {i : 'mfff', r: 'f', isattack :true, dmg : 8 , spd : 0},
-    {i : 'mwww', r: 'w', isattack :true, dmg : 8 , spd : 0},
-    {i : 'meee', r: 'e', isattack :true, dmg : 8 , spd : 0},
-    {i : 'miii', r: 'i', isattack :true, dmg : 8 , spd : 0},
-    {i : 'mzzz', r: 'z', isattack :true, dmg : 8 , spd : 0},
-    {i : 'mlll', r: 'l', isattack :true, dmg : 8 , spd : 0},
-    {i : 'mddd', r: 'd', isattack :true, dmg : 8 , spd : 0},
-    {i : 'mfi', r: 'f', isattack :true, dmg : 3 , spd : 0},
-    {i : 'mfe', r: 'f', isattack :true, dmg : 4 , spd : 0},
-    {i : 'mwi', r: 'w', isattack :true, dmg : 3 , spd : 0},
-    {i : 'mwe', r: 'w', isattack :true, dmg : 3 , spd : 0},
+    {i : 'mmmmmm', r: 'm',  isattack :true,     dmg : 100 , spd : 0},
+    {i : 'mmmmm', r: 'm',  isattack :true,     dmg : 40 , spd : 0},
+    {i : 'mmmm', r: 'm',  isattack :true,     dmg : 15 , spd : 0},
+    {i : 'mmm', r: 'm',  isattack :true,     dmg : 5 , spd : 0},
+    {i : 'mm', r: 'm',  isattack :true,     dmg : 3 , spd : 0},
+    {i : 'ff', r: 'm',  isattack :false,    dmg : 0 , spd : 0},
+    {i : 'ww', r: 'm',  isattack :false,    dmg : 0 , spd : 0},
+    {i : 'ee', r: 'm',  isattack :false,    dmg : 0 , spd : 0},
+    {i : 'ii', r: 'm',  isattack :false,    dmg : 0 , spd : 0},
+    {i : 'zz', r: 'm',  isattack :false,    dmg : 0 , spd : 0},
+    {i : 'll', r: 'm',  isattack :false,    dmg : 0 , spd : 0},
+    {i : 'dd', r: 'm',  isattack :false,    dmg : 0 , spd : 0},
+    {i : 'mf', r: 'f',  isattack :true,     dmg : 3 , spd : 0},
+    {i : 'mw', r: 'w',  isattack :true,     dmg : 3 , spd : 0},
+    {i : 'me', r: 'e',  isattack :true,     dmg : 3 , spd : 0},
+    {i : 'mi', r: 'i',  isattack :true,     dmg : 3 , spd : 0},
+    {i : 'mz', r: 'z',  isattack :true,     dmg : 3 , spd : 0},
+    {i : 'ml', r: 'l',  isattack :true,     dmg : 3 , spd : 0},
+    {i : 'md', r: 'd',  isattack :true,     dmg : 3 , spd : 0},
+    {i : 'mff', r: 'f',     isattack :true,     dmg : 7 , spd : 0},
+    {i : 'mww', r: 'w',     isattack :true,     dmg : 7 , spd : 0},
+    {i : 'mee', r: 'e',     isattack :true,     dmg : 7 , spd : 0},
+    {i : 'mii', r: 'i',     isattack :true,     dmg : 7 , spd : 0},
+    {i : 'mzz', r: 'z',     isattack :true,     dmg : 7 , spd : 0},
+    {i : 'mll', r: 'l',     isattack :true,     dmg : 7 , spd : 0},
+    {i : 'mdd', r: 'ld',    isattack :true,     dmg : 7 , spd : 0},
+    {i : 'mfff', r: 'f',    isattack :true,     dmg : 15 , spd : 0},
+    {i : 'mwww', r: 'w',    isattack :true,     dmg : 15 , spd : 0},
+    {i : 'meee', r: 'e',    isattack :true,     dmg : 15 , spd : 0},
+    {i : 'miii', r: 'i',    isattack :true,     dmg : 15 , spd : 0},
+    {i : 'mzzz', r: 'z',    isattack :true,     dmg : 15 , spd : 0},
+    {i : 'mlll', r: 'l',    isattack :true,     dmg : 15 , spd : 0},
+    {i : 'mddd', r: 'd',    isattack :true,     dmg : 15 , spd : 0},
+    {i : 'mfi', r: 'f',     isattack :true,     dmg : 8 , spd : 0},
+    {i : 'mfe', r: 'f',     isattack :true,     dmg : 8 , spd : 0},
+    {i : 'mwi', r: 'w',     isattack :true,     dmg : 8 , spd : 0},
+    {i : 'mwe', r: 'w',     isattack :true,     dmg : 8 , spd : 0},
 ];
 function ccc(ctx,color,x,y,w,h,r1,r2){
     ctx.save();
@@ -116,92 +122,6 @@ function pointsOnCircle(cx, cy, r, n) {
     }
     return points;
 }
-class SpriteEngine{
-    constructor(img){
-        var imgCanvas = G.imgToCanvas(img);
-        var mat = G.getColorMatrix(imgCanvas,(r)=>{
-            if(r == '') return null;
-            if(r == '#fff') return null;
-            if(r == '#ffffff') return null;
-            return r;
-        });
-        var cvs = G.colorsMatrixToSprite(mat,1);
-        this.black_cat = G.crop(cvs,0,0,32,32);
-        this.red_witch = G.crop(cvs,32,0,32,32);
-        this.mapBlueprint = G.crop(cvs,0,32,64,64);
-    }
-    AnimateCat(){
-        var mainSprite = G.imgToCanvas(this.black_cat);
-        var sprites = [];
-        var parts = {
-            tail : [27,20,4,6],
-            leftFoot : [7,29,8,3],
-            rightFoot : [17,29,8,3],
-            leftArm : [5,15,5,7],
-            rightArm: [22,15,5,7]
-        };
-        function crp(values){
-            return G.crop(mainSprite,values[0],values[1],values[2],values[3]);
-        }
-        var tail = crp(parts.tail);
-        var tailInverse = G.mirror(tail,false);
-        var leftFoot = crp(parts.leftFoot);
-        var rightFoot = crp(parts.rightFoot);
-        var leftArm = crp(parts.leftArm);
-        var leftArmInv = G.mirror(leftArm,false);
-        var rightArm = crp(parts.rightArm);
-        var rightArmInv = G.mirror(rightArm,false);
-        for(let i in parts){
-            let p = parts[i];
-            mainSprite.ctx.clearRect(p[0],p[1],p[2],p[3]);
-        }       
-        function drawSpecs(LF,RF,T,LA,RA){
-            var clone = G.imgToCanvas(mainSprite);
-            clone.ctx.drawImage(leftFoot, parts.leftFoot[0],parts.leftFoot[1] + (LF ? -2 : 0));
-            clone.ctx.drawImage(rightFoot, parts.rightFoot[0],parts.rightFoot[1] + (RF? -2 : 0));
-            if(T){
-                clone.ctx.drawImage(tailInverse, parts.tail[0],parts.tail[1] + 4);
-            }
-            else{
-                clone.ctx.drawImage(tail, parts.tail[0],parts.tail[1]);
-            }
-            if(LA){
-                clone.ctx.drawImage(leftArmInv, parts.leftArm[0],parts.leftArm[1]-4);
-            }
-            else{
-                clone.ctx.drawImage(leftArm, parts.leftArm[0],parts.leftArm[1]);
-            }
-            if(RA){
-                clone.ctx.drawImage(rightArmInv, parts.rightArm[0],parts.rightArm[1]-4);
-            }
-            else{
-                clone.ctx.drawImage(rightArm, parts.rightArm[0],parts.rightArm[1]);
-            }
-            return clone;
-        }
-        var spriteSpec = [
-            {LF : 0 ,   RF : 0 ,    T : 0,  LA:0,   RA:0}, // idle 1 normal
-            {LF : 0 ,   RF : 0 ,    T : 0,  LA:0,   RA:0}, // idle move tail
-            {LF : 1 ,   RF : 0 ,    T : 0,  LA:0,   RA:1}, // left leg up tail norm
-            {LF : 1 ,   RF : 0 ,    T : 1,  LA:0,   RA:0}, //left leg up tail inv
-            {LF : 0 ,   RF : 1 ,    T : 0,  LA:1,   RA:0}, //right leg up tail norm
-            {LF : 0 ,   RF : 1 ,    T : 1,  LA:0,   RA:0}, //right leg up tail inv
-        ]; 
-        for(let i in spriteSpec){
-            var spec = spriteSpec[i];
-            var clone = drawSpecs(spec.LF,spec.RF,spec.T,spec.LA,spec.RA);
-            sprites.push(clone);
-        }
-        return sprites;
-    }
-    Cave(w,h){
-        var canvas = G.makeCanvas(w,h);
-        var emoji = G.getEmojiSprite(`🪨`,w,1.3);
-        canvas.ctx.drawImage(emoji,0,0);
-        ccc(canvas.ctx,'#000',canvas.w/1.6,canvas.h,canvas.w/4,canvas.h/3,0,0);
-        return canvas;
-    }
-}
 class Clickable{
     constructor(x,y,w,h,sprite,onclick){
         this.x = x;
@@ -222,11 +142,11 @@ class Clickable{
         return px >= this.x && px <= this.x + this.w && py >= this.y && py <= this.y + this.h;
     }
     draw(ctx){
-        ctx.save();
-        ctx.strokeStyle = '#f00';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(this.x,this.y,this.w,this.h);
-        ctx.restore();
+        // ctx.save();
+        // ctx.strokeStyle = '#f00';
+        // ctx.lineWidth = 2;
+        // ctx.strokeRect(this.x,this.y,this.w,this.h);
+        // ctx.restore();
         ctx.drawImage(this.sprite,this.x,this.y,this.w,this.h);
     }
     update(t){}
@@ -282,257 +202,19 @@ class Pathfinder {
     getNeighbors(row, col) {const neighbors = [];if (row > 0) {neighbors.push([row - 1, col]);}if (row < this.rows - 1) {neighbors.push([row + 1, col]);}if (col > 0) {neighbors.push([row, col - 1]);}if (col < this.cols - 1) {neighbors.push([row, col + 1]);}return neighbors;}
     reconstructPath(cameFrom, current) {const path = [current];while (cameFrom.hasOwnProperty(`${current[0]}-${current[1]}`)) {current = cameFrom[`${current[0]}-${current[1]}`];path.unshift(current);}return path;}
 }
-class GameMap{
-    constructor(game){
+class MapBase{
+    constructor(game,blueprint){
         this.game = game;
-        this.cw = this.game.canvasDim.w;
-        this.ch = this.game.canvasDim.h;
-        var dirt = GameMap.GenDirtTile(CELLSIZE,CELLSIZE);
-        var walkway = GameMap.GenWalkwayTile(CELLSIZE,CELLSIZE);
-        var water = GameMap.GenWaterTile(CELLSIZE,CELLSIZE);
-        var tree1 = G.getEmojiSprite(`🌳`,CELLSIZE,1.3);
-        var house1 = G.getEmojiSprite(`🏡`,CELLSIZE*2,1.3);
-        var house2 = G.getEmojiSprite(`🏠`,CELLSIZE*2,1.3);
-        var church = G.getEmojiSprite(`⛪`,CELLSIZE*3,1.3);
-        var townhall = G.getEmojiSprite(`🏫`,CELLSIZE*3,1.3);
-        var tent = G.getEmojiSprite(`⛺`,CELLSIZE*3,1.3);
-        var portal = G.getEmojiSprite(`🌀`,CELLSIZE*2,1.3);
-        var stoneBrickWall = GameMap.GenCozyWallTile(CELLSIZE);
-        this.locations = [];
-        this.colordict = [
-            {c:'#99e550',o: 0, l:'', s: undefined},
-            {c:'#639bff',o: 1, l:'', s: water},
-            {c:'#6abe30',o: 1, l:'', s: tree1},
-            {c:'#76428a',o: 1, l:'house1', s: house1},
-            {c:'#d77bba',o: 1, l:'house2', s: house2},
-            {c:'#d9a066',o: 0, l:'', s: dirt},
-            {c:'#767676',o: 1, l:'', s: stoneBrickWall},
-            {c:'#8f974a',o: 1, l:'church', s: church},
-            {c:'#fbf236',o: 1, l:'townhall', s: townhall},
-            {c:'#663931',o: 0, l:'', s: walkway},
-            {c:'#524b24',o: 1, l:'tent', s: tent},
-            {c:'#222034',o: 1, l:'portal', s: portal},
-        ];
-        this.locations = [];
-
-        this.blueprintasmatrix = G.getColorMatrix(game.spriteEngine.mapBlueprint,(r)=>{
+        this.blueprintasmatrix = G.getColorMatrix(blueprint,(r)=>{
             if(r == '') return null;
             return r;
         });
-        this.map = this.RenderMap(game.spriteEngine.mapBlueprint);
-        this.pathfindermatrix = this.getPathfindMatrix(this.blueprintasmatrix,this.colordict);
-        this.pathFinder = new Pathfinder(this.pathfindermatrix);
+        this.colordict = [
+            {c:'#847e87',o: 0, l:'', s: undefined},
+        ];
     }
     getMap(){
         return G.imgToCanvas(this.map);
-    }
-    draw(ctx,px,py){
-        let buffer = this.map;
-        let sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight;
-        sx=sy=sWidth=sHeight=dx=dy=dWidth=dHeight = 0;
-        let edge = {
-            x : px - (this.cw / 2),
-            y : py - (this.ch / 2),
-        }
-        sx = edge.x;
-        sy = edge.y;
-        if(sx <= 0) {
-            sx = 0;
-            px = sx + this.cw / 2;
-        }
-        if(sy <= 0) {
-            sy = 0;
-            py = sy + this.ch/2;
-        }
-        if(sx + this.w > buffer.width){
-            sx = buffer.width - this.cw;
-            px = sx + this.cw / 2;
-        }
-        if(sy + this.h > buffer.height){
-            sy = buffer.height - this.ch;
-            py = sy + this.ch/2;
-        }
-        dx = 0;
-        dy = 0;
-        sWidth  = dWidth = this.w;
-        sHeight = dHeight = this.h;
-        ctx.drawImage(buffer, 
-            sx, 
-            sy, 
-            sWidth, 
-            sHeight, 
-            dx, 
-            dy, 
-            dWidth, 
-            dHeight);
-    }
-    static GenCozyWallTile(tileSize = 64) {
-        const canvas = document.createElement('canvas');
-        canvas.width = canvas.height = tileSize;
-        const ctx = canvas.getContext('2d');
-        // Background color
-        ctx.fillStyle = '#e6d3b3'; // warm beige
-        ctx.fillRect(0, 0, tileSize, tileSize);
-        // Stone colors
-        const stoneColors = ['#d1bfa3', '#c2ad8f', '#b8a07d', '#e0ceb0'];
-        // Draw rounded stones in a staggered pattern
-        const rows = 3, cols = 4;
-        const stoneW = tileSize / cols * 0.9;
-        const stoneH = tileSize / rows * 0.7;
-        for (let row = 0; row < rows; row++) {
-            for (let col = 0; col < cols; col++) {
-                // Stagger every other row
-                let x = col * tileSize / cols + ((row % 2) * tileSize / (cols * 2));
-                let y = row * tileSize / rows;
-                ctx.beginPath();
-                ctx.ellipse(
-                    x + stoneW / 2,
-                    y + stoneH / 2,
-                    stoneW / 2,
-                    stoneH / 2,
-                    0,
-                    0,
-                    2 * Math.PI
-                );
-                ctx.fillStyle = stoneColors[Math.floor(Math.random() * stoneColors.length)];
-                ctx.shadowColor = '#bba98a';
-                ctx.shadowBlur = 4;
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-        }
-        // Optional: subtle highlight
-        ctx.globalAlpha = 0.08;
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(tileSize * 0.7, tileSize * 0.3, tileSize * 0.25, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        return canvas;
-    }
-    static GenWaterTile(w =64, h = 64){
-        const canvas = G.makeCanvas(w, h);
-        const ctx = canvas.ctx;
-        ctx.fillStyle = "#639bff";
-        ctx.fillRect(0, 0, w, h);
-        for (let i = 0; i < w+h; i++) {
-            const x = G.randInt(0, w);
-            const y = G.randInt(0, h);
-            const r = G.randInt(2, 6);
-            ctx.globalAlpha = G.rand(0.15, 0.35);
-            ctx.fillStyle = "#a3d8ff";
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-        return canvas;
-    }
-    static GenDirtTile(w =64, h = 64) {
-        const canvas = G.makeCanvas(w, h);
-        const ctx = canvas.ctx;
-        ctx.fillStyle = "#a67c52";
-        ctx.fillRect(0, 0, w, h);
-        for (let i = 0; i < w+h; i++) {
-            const x = G.randInt(0, w);
-            const y = G.randInt(0, h);
-            const r = G.randInt(2, 5);
-            ctx.globalAlpha = G.rand(0.15, 0.35);
-            ctx.fillStyle = G.rand() > 0.5 ? "#c2b280" : "#7c5c36";
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-        return canvas;
-    }
-    static GenGrassTile(w =64, h = 64) {
-        const canvas = G.makeCanvas(w, h);
-        const ctx = canvas.ctx;
-        // Base grass color
-        ctx.fillStyle = "#4caf50";
-        ctx.fillRect(0, 0, w, h);
-        // Add random spots for texture
-        for (let i = 0; i < w+h; i++) {
-            const x = G.randInt(0, w);
-            const y = G.randInt(0, h);
-            const r = G.randInt(2, 5);
-            ctx.globalAlpha = G.rand(0.18, 0.38);
-            ctx.fillStyle = G.rand() > 0.5 ? "#81c784" : "#388e3c";
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-        return canvas;
-    }
-    static GenWalkwayTile(w =64, h = 64) {
-        const canvas = G.makeCanvas(w, h);
-        const ctx = canvas.ctx;
-        // Base walkway color
-        ctx.fillStyle = "#b0a99f";
-        ctx.fillRect(0, 0, w, h);
-        const brickW = w/4, brickH = h/4;
-        for (let row = 0; row < 4; row++) {
-            for (let col = 0; col < 4; col++) {
-                // Offset every other row for a brick pattern
-                let x = col * brickW + (row % 2 === 1 ? brickW / 2 : 0);
-                if (x + brickW > w) continue; // Avoid overflow
-                let y = row * brickH;
-                ctx.fillStyle = G.rand() > 0.5 ? "#d6d2c4" : "#a59e91";
-                ctx.fillRect(x, y, brickW - 2, brickH - 2);
-                ctx.strokeStyle = "#8d867a";
-                ctx.lineWidth = 1;
-                ctx.strokeRect(x, y, brickW - 2, brickH - 2);
-            }
-        }
-        ctx.globalAlpha = 1;
-        return canvas;
-    }
-    static GenFlowerGarden(w = 64,h = 64, density = 8){
-        var sprites = [
-            G.getEmojiSprite("🌹", 12,1.3),
-            G.getEmojiSprite("🌷", 12,1.3),
-            G.getEmojiSprite("🌻", 12,1.3),
-            G.getEmojiSprite("🌼",12,1.3),
-            G.getEmojiSprite("🌱",12,1.3),
-        ];
-        const canvas = G.makeCanvas(w, h);
-        var ctx = canvas.ctx;
-        var grass = GameMap.GenGrassTile(w,h);
-        ctx.fillStyle = "#4caf50";
-        ctx.drawImage(grass,0,0);
-        for (let i = 0; i < density; i++) {
-            const x = G.randInt(0, w-12);
-            const y = G.randInt(0, h-12);
-            var randSprite = sprites[G.randInt(0,sprites.length)];
-            ctx.drawImage(randSprite,x,y);
-        }
-        return canvas;
-    }
-    RenderMap(blueprint){
-        const MAPSIZE = {w:64,h:64};
-        this.collisionMat = [];
-        var gardenFullCanvas = GameMap.GenFlowerGarden(MAPSIZE.w*CELLSIZE,MAPSIZE.h*CELLSIZE,CELLSIZE*CELLSIZE);
-        var colortocanvasdic = {};
-        this.colordict.map(x=> colortocanvasdic[x.c] = x.s); 
-        var mat = G.getColorMatrix(blueprint,(r)=>{
-            if(r == '') return null;
-            return r;
-        });
-        var buffer = G.makeCanvas(MAPSIZE.w*CELLSIZE,MAPSIZE.h*CELLSIZE);
-        var ctx = buffer.ctx;
-        ctx.drawImage(gardenFullCanvas,0,0);
-        for(let i = 0 ; i < 64; i++){
-            for(let j = 0 ; j < 64 ;j++){
-                var col = mat[j][i];
-                var spritetodraw = colortocanvasdic[col];
-                if(spritetodraw!=undefined){
-                    ctx.drawImage(spritetodraw,i*CELLSIZE,j*CELLSIZE);
-                }
-            }
-        }
-        return buffer;
     }
     getPathfindMatrix(colorMatrix,MAPTILES){
         var obstacle = {};
@@ -573,6 +255,147 @@ class GameMap{
         }
         return pointPathNorm;
     }
+
+}
+class DungeonMap extends MapBase{
+    constructor(game,pos){
+        super(game,game.spriteEngine.dungeonprint1);
+        this.pos = pos;
+        this.mobs = [];
+    }
+    RenderMap(blueprint){
+
+    }
+    GenMap(){
+
+    }
+}
+class Portal{
+    constructor(game,pos){
+        this.game = game;
+        this.animations = [
+            G.getEmojiSprite(`🌀`,CELLSIZE*2,1.3),
+            G.getEmojiSprite(`🌀`,CELLSIZE*2,1),
+            G.getEmojiSprite(`🌀`,CELLSIZE*2,1.1),
+            G.getEmojiSprite(`🌀`,CELLSIZE*2,1.2),
+        ]
+        this.animate = {
+            framerate : 10,
+            frame : 0,
+            index : 0
+        }
+        this.level = this.evalDifficulity(pos);
+        this.sprite = this.animations[0];
+        this.center = G.Point({
+            x: pos.i * CELLSIZE + this.sprite.w/2,
+            y: pos.j * CELLSIZE + this.sprite.h/2,
+        });
+    }
+    evalDifficulity(pos){
+        var i = pos.i;
+        var j = pos.j;
+
+        const score = (i + j) / 2; // 0–64
+        if (score < 8) return 1;
+        if (score < 16) return 2;
+        if (score < 24) return 3;
+        if (score < 32) return 4;
+        if (score < 40) return 5;
+        if (score < 48) return 6;
+        if (score < 56) return 7;
+        if (score < 64) return 8;
+        return 9 + Math.round(Math.random());
+    }
+    update(t){
+        this.animate.frame++;
+        if(this.animate.frame > this.animate.framerate){
+            this.sprite = this.animations[this.animate.index];
+            this.animate.frame = 0;
+            this.animate.index = this.animate.index >= this.animations.length-1 ? 0 : this.animate.index+1;
+        }
+    }
+    draw(ctx){
+        ctx.drawImage(this.sprite,
+            this.center.x - this.sprite.w/2,
+            this.center.y - this.sprite.h/2
+        );
+        ctx.fillStyle = 'blue';
+        ctx.fillRect(this.center.x,this.center.y,2,2);
+    }
+    handleTouchPos(pos){
+        if(this.center.distance(pos) < CELLSIZE*2){
+            console.log('click near me',this);
+            this.game.openPortalMenu(this);
+        }
+    }
+}
+class GameMap extends MapBase{
+    constructor(game){
+        super(game,game.spriteEngine.mapBlueprint);
+        this.cw = this.game.canvasDim.w;
+        this.ch = this.game.canvasDim.h;
+        var dirt = SpriteEngine.GenDirtTile(CELLSIZE,CELLSIZE);
+        var walkway = SpriteEngine.GenWalkwayTile(CELLSIZE,CELLSIZE);
+        var water = SpriteEngine.GenWaterTile(CELLSIZE,CELLSIZE);
+        var tree1 = G.getEmojiSprite(`🌳`,CELLSIZE,1.3);
+        var house1 = G.getEmojiSprite(`🏡`,CELLSIZE*2,1.3);
+        var house2 = G.getEmojiSprite(`🏠`,CELLSIZE*2,1.3);
+        var church = G.getEmojiSprite(`⛪`,CELLSIZE*3,1.3);
+        var townhall = G.getEmojiSprite(`🏫`,CELLSIZE*3,1.3);
+        var tent = G.getEmojiSprite(`⛺`,CELLSIZE*3,1.3);
+        var portal = G.getEmojiSprite(`🌀`,CELLSIZE*2,1.3);
+        var stoneBrickWall = SpriteEngine.GenCozyWallTile(CELLSIZE);
+        this.locations_portal = [];
+        this.colordict = [
+            {c:'#99e550',o: 0, l:'', s: undefined},
+            {c:'#639bff',o: 1, l:'', s: water},
+            {c:'#6abe30',o: 1, l:'', s: tree1},
+            {c:'#76428a',o: 1, l:'house1', s: house1},
+            {c:'#d77bba',o: 1, l:'house2', s: house2},
+            {c:'#d9a066',o: 0, l:'', s: dirt},
+            {c:'#767676',o: 1, l:'', s: stoneBrickWall},
+            {c:'#8f974a',o: 1, l:'church', s: church},
+            {c:'#fbf236',o: 1, l:'townhall', s: townhall},
+            {c:'#663931',o: 0, l:'', s: walkway},
+            {c:'#524b24',o: 1, l:'tent', s: tent},
+            {c:'#222034',o: 1, l:'portal', s: undefined},
+        ];
+        for(let i = 0 ; i < 64; i++){
+            for(let j = 0 ; j < 64 ;j++){
+                var col = this.blueprintasmatrix[j][i];
+                if(col == '#222034'){
+                    this.locations_portal.push({i:i,j:j});
+                }
+            }
+        }
+        this.map = this.RenderMap(game.spriteEngine.mapBlueprint);
+        this.pathfindermatrix = this.getPathfindMatrix(this.blueprintasmatrix,this.colordict);
+        this.pathFinder = new Pathfinder(this.pathfindermatrix);
+    }
+    RenderMap(blueprint){
+        const MAPSIZE = {w:64,h:64};
+        this.collisionMat = [];
+        var gardenFullCanvas = SpriteEngine.GenFlowerGarden(MAPSIZE.w*CELLSIZE,MAPSIZE.h*CELLSIZE,CELLSIZE*CELLSIZE);
+        var colortocanvasdic = {};
+        this.colordict.map(x=> colortocanvasdic[x.c] = x.s); 
+        var mat = G.getColorMatrix(blueprint,(r)=>{
+            if(r == '') return null;
+            return r;
+        });
+        var buffer = G.makeCanvas(MAPSIZE.w*CELLSIZE,MAPSIZE.h*CELLSIZE);
+        var ctx = buffer.ctx;
+        ctx.drawImage(gardenFullCanvas,0,0);
+        for(let i = 0 ; i < 64; i++){
+            for(let j = 0 ; j < 64 ;j++){
+                var col = mat[j][i];
+                var spritetodraw = colortocanvasdic[col];
+                if(spritetodraw!=undefined){
+                    ctx.drawImage(spritetodraw,i*CELLSIZE,j*CELLSIZE);
+                }
+            }
+        }
+        return buffer;
+    }
 }
 class Cat{
     constructor(game){
@@ -593,109 +416,6 @@ class Cat{
             frames.push(this.animations[i]);
         }
         return frames;
-    }
-    CarSprite(windowsprite){
-        var canvas = G.makeCanvas(w,h);
-        var ctx = canvas.ctx;
-        // Draw wheels
-        var wheelW = w * 0.22, wheelH = h * 0.18;
-        ctx.save();
-        ctx.fillStyle = '#333';
-        ctx.beginPath();
-        ctx.ellipse(w * 0.25, h * 0.85, wheelW/2, wheelH/2, 0, 0, Math.PI * 2);
-        ctx.ellipse(w * 0.75, h * 0.85, wheelW/2, wheelH/2, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-        // Draw car body
-        ctx.save();
-        ctx.fillStyle = '#e23d3d';
-        ctx.beginPath();
-        ctx.moveTo(w*0.1, h*0.7);
-        ctx.lineTo(w*0.1, h*0.5);
-        ctx.bezierCurveTo(w*0.1, h*0.3, w*0.3, h*0.15, w*0.5, h*0.15);
-        ctx.bezierCurveTo(w*0.7, h*0.15, w*0.9, h*0.3, w*0.9, h*0.5);
-        ctx.lineTo(w*0.9, h*0.7);
-        ctx.quadraticCurveTo(w*0.9, h*0.8, w*0.8, h*0.8);
-        ctx.lineTo(w*0.2, h*0.8);
-        ctx.quadraticCurveTo(w*0.1, h*0.8, w*0.1, h*0.7);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-        // Draw car roof (window area)
-        ctx.save();
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.moveTo(w*0.25, h*0.5);
-        ctx.bezierCurveTo(w*0.28, h*0.28, w*0.72, h*0.28, w*0.75, h*0.5);
-        ctx.lineTo(w*0.75, h*0.5);
-        ctx.lineTo(w*0.25, h*0.5);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-        // Draw window sprite and overlay with light blue
-        if(windowsprite){
-            ctx.save();
-            ctx.globalAlpha = 1;
-            ctx.drawImage(windowsprite, w*0.28, h*0.29, w*0.44, h*0.21);
-            ctx.globalAlpha = 0.35;
-            ctx.fillStyle = '#aee7ff';
-            ctx.fillRect(w*0.28, h*0.29, w*0.44, h*0.21);
-            ctx.globalAlpha = 1;
-            ctx.restore();
-        } else {
-            ctx.save();
-            ctx.globalAlpha = 0.35;
-            ctx.fillStyle = '#aee7ff';
-            ctx.fillRect(w*0.28, h*0.29, w*0.44, h*0.21);
-            ctx.globalAlpha = 1;
-            ctx.restore();
-        }
-        // Optional: add car details (door line, lights)
-        ctx.save();
-        ctx.strokeStyle = '#b22222';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(w*0.5, h*0.7);
-        ctx.lineTo(w*0.5, h*0.8);
-        ctx.stroke();
-        // Headlights
-        ctx.fillStyle = '#fffbe0';
-        ctx.beginPath();
-        ctx.ellipse(w*0.88, h*0.7, w*0.04, h*0.03, 0, 0, Math.PI*2);
-        ctx.fill();
-        // Taillights
-        ctx.fillStyle = '#ffb3b3';
-        ctx.beginPath();
-        ctx.ellipse(w*0.12, h*0.7, w*0.04, h*0.03, 0, 0, Math.PI*2);
-        ctx.fill();
-        ctx.restore();
-        return canvas;
-    }
-    CatInCar(){
-        var canvas = G.makeCanvas(80,48);
-        // canvas.fill('#fff');
-        var ctx = canvas.ctx;
-        var catsprite = this.Idle();
-        var catInWindow = G.crop(catsprite,5,0,22,18);       
-        ctx.drawImage(catInWindow,29,11);
-        function ccircle(ctx,c){
-            ccc(ctx,c[0],c[1],c[2],c[3],c[4],c[5],c[6]);
-        }
-        var circles = [
-            ['#f00',8,35,7,8,0,0],
-            ['#f00',16,32,5,8,0,0],
-            ['#f00',70,36,9,7,0,0],
-            //wheels
-            ['#333',16,41,7,7,0,0],
-            ['#333',65,41,7,7,0,0],
-            ['#b7b7b7',16,41,4,3,0,0],
-            ['#b7b7b7',65,41,4,3,0,0],
-        ];
-        ccircle(ctx,['#4498dda3',40,24,30,18,0,0]);
-        ccircle(ctx,['#0d4b7ee3',65,28,5,9,60,120]);
-        drawrect(ctx,'#f00',8,28,64,15);
-        circles.forEach(c=> ccircle(ctx,c));
-        return canvas;
     }
 }
 class CPlayer {
@@ -1133,6 +853,7 @@ class G{
         return G.fuseImage(canvas,colorbuffer,'source-atop');
     }
     static fuseImage(canvas,canvas2,composite = 'source-atop'){
+        if(!canvas || !canvas2) return canvas;
         let buffer = G.makeCanvas(canvas.width,canvas.height);
         let ctx = buffer.ctx;
         ctx.drawImage(canvas,0,0);
@@ -1408,8 +1129,248 @@ class G{
         var mat = G.getColorMatrix(canvas);
         return G.colorsMatrixToSprite(mat,mult);
     }
+    static parseTime(s){
+        let m = Math.floor(s / 60);
+        let h = Math.floor(m / 60);
+        h = h == 0 ? '' : h < 10 ? `0${h}:` : `${h}:`;
+        m = Math.floor(m % 60);
+        m = m == 0 ? '' : m < 10 ? `0${m}:` : `${m}:`;
+        s = Math.floor(s % 60);
+        return `${h}${m}${s}`;
+    }
     static rand (a=1, b=0){ return b + (a-b)*Math.random();}
     static randInt (a=1, b=0){ return G.rand(a,b)|0;}
+}
+class SpriteEngine{
+    constructor(img){
+        var imgCanvas = G.imgToCanvas(img);
+        var mat = G.getColorMatrix(imgCanvas,(r)=>{
+            if(r == '') return null;
+            if(r == '#fff') return null;
+            if(r == '#ffffff') return null;
+            return r;
+        });
+        var cvs = G.colorsMatrixToSprite(mat,1);
+        this.black_cat = G.crop(cvs,0,0,32,32);
+        this.red_witch = G.crop(cvs,32,0,32,32);
+        this.mapBlueprint = G.crop(cvs,0,32,64,64);
+        this.dungeonprint1 = G.crop(cvs,0,80,16,16);
+    }
+    AnimateCat(){
+        var mainSprite = G.imgToCanvas(this.black_cat);
+        var sprites = [];
+        var parts = {
+            tail : [27,20,4,6],
+            leftFoot : [7,29,8,3],
+            rightFoot : [17,29,8,3],
+            leftArm : [5,15,5,7],
+            rightArm: [22,15,5,7]
+        };
+        function crp(values){
+            return G.crop(mainSprite,values[0],values[1],values[2],values[3]);
+        }
+        var tail = crp(parts.tail);
+        var tailInverse = G.mirror(tail,false);
+        var leftFoot = crp(parts.leftFoot);
+        var rightFoot = crp(parts.rightFoot);
+        var leftArm = crp(parts.leftArm);
+        var leftArmInv = G.mirror(leftArm,false);
+        var rightArm = crp(parts.rightArm);
+        var rightArmInv = G.mirror(rightArm,false);
+        for(let i in parts){
+            let p = parts[i];
+            mainSprite.ctx.clearRect(p[0],p[1],p[2],p[3]);
+        }       
+        function drawSpecs(LF,RF,T,LA,RA){
+            var clone = G.imgToCanvas(mainSprite);
+            clone.ctx.drawImage(leftFoot, parts.leftFoot[0],parts.leftFoot[1] + (LF ? -2 : 0));
+            clone.ctx.drawImage(rightFoot, parts.rightFoot[0],parts.rightFoot[1] + (RF? -2 : 0));
+            if(T){
+                clone.ctx.drawImage(tailInverse, parts.tail[0],parts.tail[1] + 4);
+            }
+            else{
+                clone.ctx.drawImage(tail, parts.tail[0],parts.tail[1]);
+            }
+            if(LA){
+                clone.ctx.drawImage(leftArmInv, parts.leftArm[0],parts.leftArm[1]-4);
+            }
+            else{
+                clone.ctx.drawImage(leftArm, parts.leftArm[0],parts.leftArm[1]);
+            }
+            if(RA){
+                clone.ctx.drawImage(rightArmInv, parts.rightArm[0],parts.rightArm[1]-4);
+            }
+            else{
+                clone.ctx.drawImage(rightArm, parts.rightArm[0],parts.rightArm[1]);
+            }
+            return clone;
+        }
+        var spriteSpec = [
+            {LF : 0 ,   RF : 0 ,    T : 0,  LA:0,   RA:0}, // idle 1 normal
+            {LF : 0 ,   RF : 0 ,    T : 0,  LA:0,   RA:0}, // idle move tail
+            {LF : 1 ,   RF : 0 ,    T : 0,  LA:0,   RA:1}, // left leg up tail norm
+            {LF : 1 ,   RF : 0 ,    T : 1,  LA:0,   RA:0}, //left leg up tail inv
+            {LF : 0 ,   RF : 1 ,    T : 0,  LA:1,   RA:0}, //right leg up tail norm
+            {LF : 0 ,   RF : 1 ,    T : 1,  LA:0,   RA:0}, //right leg up tail inv
+        ]; 
+        for(let i in spriteSpec){
+            var spec = spriteSpec[i];
+            var clone = drawSpecs(spec.LF,spec.RF,spec.T,spec.LA,spec.RA);
+            sprites.push(clone);
+        }
+        return sprites;
+    }
+    Cave(w,h){
+        var canvas = G.makeCanvas(w,h);
+        var emoji = G.getEmojiSprite(`🪨`,w,1.3);
+        canvas.ctx.drawImage(emoji,0,0);
+        ccc(canvas.ctx,'#000',canvas.w/1.6,canvas.h,canvas.w/4,canvas.h/3,0,0);
+        return canvas;
+    }
+    static GenCozyWallTile(tileSize = 64) {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = tileSize;
+        const ctx = canvas.getContext('2d');
+        // Background color
+        ctx.fillStyle = '#e6d3b3'; // warm beige
+        ctx.fillRect(0, 0, tileSize, tileSize);
+        // Stone colors
+        const stoneColors = ['#d1bfa3', '#c2ad8f', '#b8a07d', '#e0ceb0'];
+        // Draw rounded stones in a staggered pattern
+        const rows = 3, cols = 4;
+        const stoneW = tileSize / cols * 0.9;
+        const stoneH = tileSize / rows * 0.7;
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                // Stagger every other row
+                let x = col * tileSize / cols + ((row % 2) * tileSize / (cols * 2));
+                let y = row * tileSize / rows;
+                ctx.beginPath();
+                ctx.ellipse(
+                    x + stoneW / 2,
+                    y + stoneH / 2,
+                    stoneW / 2,
+                    stoneH / 2,
+                    0,
+                    0,
+                    2 * Math.PI
+                );
+                ctx.fillStyle = stoneColors[Math.floor(Math.random() * stoneColors.length)];
+                ctx.shadowColor = '#bba98a';
+                ctx.shadowBlur = 4;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+        // Optional: subtle highlight
+        ctx.globalAlpha = 0.08;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(tileSize * 0.7, tileSize * 0.3, tileSize * 0.25, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    static GenWaterTile(w =64, h = 64){
+        const canvas = G.makeCanvas(w, h);
+        const ctx = canvas.ctx;
+        ctx.fillStyle = "#639bff";
+        ctx.fillRect(0, 0, w, h);
+        for (let i = 0; i < w+h; i++) {
+            const x = G.randInt(0, w);
+            const y = G.randInt(0, h);
+            const r = G.randInt(2, 6);
+            ctx.globalAlpha = G.rand(0.15, 0.35);
+            ctx.fillStyle = "#a3d8ff";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    static GenDirtTile(w =64, h = 64) {
+        const canvas = G.makeCanvas(w, h);
+        const ctx = canvas.ctx;
+        ctx.fillStyle = "#a67c52";
+        ctx.fillRect(0, 0, w, h);
+        for (let i = 0; i < w+h; i++) {
+            const x = G.randInt(0, w);
+            const y = G.randInt(0, h);
+            const r = G.randInt(2, 5);
+            ctx.globalAlpha = G.rand(0.15, 0.35);
+            ctx.fillStyle = G.rand() > 0.5 ? "#c2b280" : "#7c5c36";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    static GenGrassTile(w =64, h = 64) {
+        const canvas = G.makeCanvas(w, h);
+        const ctx = canvas.ctx;
+        // Base grass color
+        ctx.fillStyle = "#4caf50";
+        ctx.fillRect(0, 0, w, h);
+        // Add random spots for texture
+        for (let i = 0; i < w+h; i++) {
+            const x = G.randInt(0, w);
+            const y = G.randInt(0, h);
+            const r = G.randInt(2, 5);
+            ctx.globalAlpha = G.rand(0.18, 0.38);
+            ctx.fillStyle = G.rand() > 0.5 ? "#81c784" : "#388e3c";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    static GenWalkwayTile(w =64, h = 64) {
+        const canvas = G.makeCanvas(w, h);
+        const ctx = canvas.ctx;
+        // Base walkway color
+        ctx.fillStyle = "#b0a99f";
+        ctx.fillRect(0, 0, w, h);
+        const brickW = w/4, brickH = h/4;
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 4; col++) {
+                // Offset every other row for a brick pattern
+                let x = col * brickW + (row % 2 === 1 ? brickW / 2 : 0);
+                if (x + brickW > w) continue; // Avoid overflow
+                let y = row * brickH;
+                ctx.fillStyle = G.rand() > 0.5 ? "#d6d2c4" : "#a59e91";
+                ctx.fillRect(x, y, brickW - 2, brickH - 2);
+                ctx.strokeStyle = "#8d867a";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, y, brickW - 2, brickH - 2);
+            }
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    static GenFlowerGarden(w = 64,h = 64, density = 8){
+        var sprites = [
+            G.getEmojiSprite("🌹", 12,1.3),
+            G.getEmojiSprite("🌷", 12,1.3),
+            G.getEmojiSprite("🌻", 12,1.3),
+            G.getEmojiSprite("🌼",12,1.3),
+            G.getEmojiSprite("🌱",12,1.3),
+        ];
+        const canvas = G.makeCanvas(w, h);
+        var ctx = canvas.ctx;
+        var grass = SpriteEngine.GenGrassTile(w,h);
+        ctx.fillStyle = "#4caf50";
+        ctx.drawImage(grass,0,0);
+        for (let i = 0; i < density; i++) {
+            const x = G.randInt(0, w-12);
+            const y = G.randInt(0, h-12);
+            var randSprite = sprites[G.randInt(0,sprites.length)];
+            ctx.drawImage(randSprite,x,y);
+        }
+        return canvas;
+    }
 }
 class Point{
     constructor(pos){
@@ -1595,124 +1556,6 @@ class Player{
         }
     }
 }
-class ChatButton{
-    constructor(card,text,callback){
-        this.text = text;
-        this.buttonsprite = this.drawButton();
-    }
-    drawButton(){
-        var textSprite = G.getTextSprite(this.text,20,'#fff',1.3);
-        var border = G.getTextSprite('▄',4,'#fff',1.3);
-        var buttonBorder = G.GenBorder(textSprite.w+8,textSprite.h+8,border,'#7a7818');
-        buttonBorder.ctx.drawImage(textSprite,4,4);
-        return buttonBorder;
-    }
-}
-class ChatCard{
-    constructor(w,h){
-        this.w = 500;
-        this.h = 250;
-        this.coreCard = this.getCoreCard(w,h);
-        var canvas = G.makeCanvas(this.w,this.h);
-        canvas.ctx.drawImage(this.coreCard,0,0);
-        var s1 = G.getTextSprite(`▣`,8,'#7a7818',1.3);
-        var picborder = G.GenBorder(64,64,s1,'#c3c139');
-        var we = G.getEmojiSprite('🧙',64,1.3);
-        canvas.ctx.drawImage(picborder,
-            canvas.w - picborder.w - 16,
-            16
-        );
-        canvas.ctx.drawImage(we,
-            canvas.w - picborder.w - 16,
-            16
-        );
-        var t1 = G.GetTextSpriteWithShadow(`Hello? .....`,16,'#7a7818',1,'cursive');
-        canvas.ctx.drawImage(t1,16,64);
-        this.canvas = canvas;
-        this.drawButtons();
-    }
-    drawButtons(){
-        this.buttons = [
-            new ChatButton(this,'Hello',(e)=>{console.log('hello')}),
-            new ChatButton(this,'Skip',(e)=>{console.log('skip')}),
-        ];
-        var cx = 16;
-        var cy = this.canvas.h - CELLSIZE;
-        for(let i in this.buttons){
-            var btn = this.buttons[i];
-            var sprite = btn.buttonsprite;
-            this.canvas.ctx.drawImage(
-                sprite,
-                cx,
-                cy
-            );
-            cx += sprite.w + CELLSIZE;
-        }
-    }
-    getCoreCard(w,h){
-        var s1 = G.getTextSprite(`▩`,16,'#c3c139',1.3);
-        return G.GenBorder(w,h,s1,'#e7e570');
-    }
-    draw(ctx,x,y){
-        ctx.drawImage(this.canvas,
-            x - this.canvas.w/2
-            ,
-            y - this.canvas.h/2
-        );
-    }
-}
-class Minigame1{
-    constructor(game){
-        this.game = game;
-        this.game.resetBody();
-        this.body = game.body;
-        this.canvasDim = game.canvasDim;
-        this.cat = new Cat(game);
-        this.catSprite = this.cat.Idle();
-        this.canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
-        this.mousePos = {x:0,y:0};
-        this.canvas.addEventListener('click',(e)=>{this.handleClick(e);});
-        this.ctx = this.canvas.ctx;
-        this.body.append(this.canvas);
-        console.log('mg1');
-        this.paused = false;
-        this.sceneEnded = false;
-        this.s1 = G.getTextSprite(`⟐⟑⟇⟒⟓⟔⟁`,14,'#ffffff',1.3);
-        this.chatcard = new ChatCard(500,250);
-        this.cursorSprite = G.GenerateCursor();
-        this.update(0);
-    }
-    handleClick(e){
-        G.mapClick(e,this.canvas,(pt)=>{
-            var x = pt.x;
-            var y = pt.y;
-            x = Math.floor(x/CELLSIZE) * CELLSIZE + CELLSIZE / 2;
-            y = Math.floor(y/CELLSIZE) * CELLSIZE + CELLSIZE / 2;
-            this.mousePos = {x:x-CELLSIZE/2,y:y-CELLSIZE/2};
-        });
-    }
-    update(t){
-        if(this.paused) return;
-        this.canvas.fill('#aaa');
-        // this.ctx.fillStyle = '#fff';
-        this.ctx.fillText(t,10,10);
-        for(let i = 0 ; i < 130; i++){
-            this.ctx.drawImage(this.s1,
-                G.randInt(-64,this.canvas.w),
-                G.randInt(-64,this.canvas.h)
-            );
-        }
-        this.chatcard.draw(this.ctx,this.canvas.w/2,this.canvas.h/2);
-        if(this.mousePos){
-            this.canvas.ctx.drawImage(this.cursorSprite,
-                this.mousePos.x,
-                this.mousePos.y,
-            );
-        }
-        // this.ctx.drawImage(this.catSprite, this.canvas.w/2,this.canvas.h/2);
-        requestAnimationFrame(newtime=>this.update(newtime));
-    }
-}
 class Collection{
     constructor(){
         this.coordinates = new Set();
@@ -1809,7 +1652,7 @@ class CombatScene{
         this.explosionsprite = G.getEmojiSprite('💥',this.tilesize,1.3,'#fff');
         this.menuclickables = [
             new Clickable(0,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('🚪',CELLSIZE*1.5,1.4),(e)=>{endscenefct(this)}),
-            new Clickable(CELLSIZE*1.5,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('🎒',CELLSIZE*1.5,1.4),(e)=>{this.inventory()}),
+            // new Clickable(CELLSIZE*1.5,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('🎒',CELLSIZE*1.5,1.4),(e)=>{this.inventory()}),
         ];
         this.playercardattrib = {
                 name : 'player',
@@ -1932,13 +1775,18 @@ class CombatScene{
     }
     getAmbient(scene){
         var canvas = G.makeCanvas(this.w,this.h);
-        var gardem = GameMap.GenFlowerGarden(this.w,this.h,this.w);
-        canvas.ctx.drawImage(gardem,0,0);
-        var bigTree = G.getEmojiSprite('🌳',this.w/2,1.2);
-        canvas.ctx.drawImage(bigTree,-bigTree.w/2,0);
-        canvas.ctx.drawImage(bigTree,this.w-bigTree.w/2,0);
+        if(scene == 'dungeon'){
+
+        }
+        else{
+            var gardem = SpriteEngine.GenFlowerGarden(this.w,this.h,this.w);
+            canvas.ctx.drawImage(gardem,0,0);
+            var bigTree = G.getEmojiSprite('🌳',this.w/2,1.2);
+            canvas.ctx.drawImage(bigTree,-bigTree.w/2,0);
+            canvas.ctx.drawImage(bigTree,this.w-bigTree.w/2,0);
+        }
+        
         return G.Lightify(canvas,0.5);
-        return canvas;
     }
     applyGravity(grid,r,c, checkZeroFct, newEntity, inverse  = true){
         if(grid.flat().find(x=> checkZeroFct(x)) == null) return grid;
@@ -2042,14 +1890,13 @@ class CombatScene{
     }
     update(t){
         if(this.mobcardattrib.health <= 0){
-            return this.endscenefct(this);
+            this.endscenefct(this);
+            return;
         }
         var ctx = this.canvas.ctx;
         this.canvas.fill('#000');
         ctx.drawImage(this.ambient,0,0);
-        // this.canvas.ctx.drawImage(this.currentgamecanvas,0,0);
         ctx.fillStyle = '#fff';
-        ctx.fillText(Math.floor(t/1000),10,10);
         ctx.drawImage(this.combatlogo,this.canvas.w/2-this.combatlogo.w/2,this.canvas.h/5 - this.combatlogo.h);
         var markedCentersObj = this.markedCenters.getAll();
         if(markedCentersObj.length > 1){
@@ -2110,21 +1957,116 @@ class CombatScene{
         this.grid = grid;
     }
 }
+class DungeonScene{
+    constructor(game,portal,player){
+        this.game = game;
+        this.portal = portal;
+        this.player = player;
+        this.playeroldpos = G.Point(player.center);
+        game.body.innerHTML = 'dungeon scene under construction, visit pdemia.com/bcg for updates ^_^ ....';
+        var btnback = G.makeDom('<button>back</button>');
+        btnback.onclick = ()=>{
+            game.body.innerHTML = '';
+            game.body.append(game.canvas);
+            game.gamePased = false;
+            game.dialog.remove();
+            game.update(game.time);
+        }
+        game.body.append(btnback);
+    }
+    update(t){
+        
+    }
+}
+class Intro{
+    constructor(game){
+        this.game = game;
+        game.body.innerHTML = '';
+        game.body.append(game.canvas);
+        game.gamePased = false;
+        game.dialog.remove();
+        this.maingamescene = G.imgToCanvas(game.canvas);
+        this.canvas = G.imgToCanvas(game.canvas);
+        var w = this.canvas.w;
+        var h = this.canvas.h;
+        game.body.innerHTML = '';
+        game.body.append(this.canvas);
+        var ctx = this.canvas.ctx;
+        this.menuclickables = [
+            // new Clickable(0,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('📋',CELLSIZE*1.5,1.4),(e)=>{game.showMenu()})
+        ]
+        var s1 = G.getTextSprite(`▩`,16,'#c3c139',1.3);
+        var bord1 = G.GenBorder(w,h/2,s1,'#e7e570');
+        ctx.drawImage(bord1,0,0);
+        var picborder = G.GenBorder(64,64,s1,'#c3c139');
+        var we = G.getEmojiSprite('🧙',64,1.3); 
+        ctx.drawImage(picborder,
+            w - picborder.w - 16,
+            16
+        );
+        ctx.drawImage(we,
+            w - picborder.w - 16,
+            16
+        );
+        var texts = [
+            G.GetTextSpriteWithShadow(`Hello? .....`,16,'#7a7818',1,'cursive'),
+            G.GetTextSpriteWithShadow(`Portals appear, monsters...`,16,'#7a7818',1,'cursive'),
+            G.GetTextSpriteWithShadow(`your master is lost in one of them`,16,'#7a7818',1,'cursive'),
+            G.GetTextSpriteWithShadow(`your mission ... rescue master`,16,'#7a7818',1,'cursive'),
+            G.GetTextSpriteWithShadow(`Game is under construction`,16,'#00f',1,'cursive'),
+            G.GetTextSpriteWithShadow(`JS13k competition 2025`,16,'#00f',1,'cursive'),
+        ]
+        var cy = CELLSIZE;
+        for(let i in texts){
+            ctx.drawImage(texts[i],CELLSIZE,cy);
+            cy += CELLSIZE;
+        }
+        var textOk = G.GetTextSpriteWithShadow(`OK`,16,'#7a7818',1,'cursive')
+        var buttonOK = G.GenBorder(textOk.w + CELLSIZE,textOk.h + CELLSIZE,s1,'#e7e570');
+        buttonOK.ctx.drawImage(textOk,CELLSIZE/2,CELLSIZE/2);
+        this.menuclickables.push(
+            new Clickable(CELLSIZE*1.5,cy,buttonOK.w,buttonOK.h,buttonOK,(e)=>{
+                game.body.innerHTML = '';
+                game.body.append(game.canvas);
+                game.gamePased = false;
+                game.dialog.remove();
+                game.update(game.time);
+            })
+        )
+        this.menuclickables.forEach(btn=>{
+            btn.draw(ctx)
+        })
+        this.canvas.addEventListener('mousedown', (e) => handleStart(e));
+        this.canvas.addEventListener('mouseup', (e) => handleEnd(e));
+        this.canvas.addEventListener('mousemove', (e) => handleMove(e));
+        this.canvas.addEventListener('touchstart', (e) => handleStart(e));
+        this.canvas.addEventListener('touchend', (e) => handleEnd(e));
+        this.canvas.addEventListener('touchmove', (e) => handleMove(e));
+        var handleEnd = (e)=>{
+            G.mapClick(e.touches ? e.touches[0] : e, this.canvas,(pt)=>{
+                this.menuclickables.forEach(x=> {if(x.handleTouchPos) x.handleTouchPos(pt)});
+            });
+        }
+        var handleStart = (e)=>{
+            this.isClick = true;
+        }
+        var handleMove = (e)=>{
+            G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt)=>{
+                
+            });
+        }
+    }
+}
 class Game extends GameEnginge{
     constructor(c){
         super(c);
         this.canvasDim = {w :600 , h :600};
-        // document.body.append(G.getEmojiSprite(`🚗`,64,1.3));
         G.loadImage('sh1.gif?'+Math.random(),img=>{
             this.cellSize = CELLSIZE;
             this.spriteEngine = new SpriteEngine(img);
             this.objects = [];
-            // document.body.append(this.spriteEngine.Cave());
-            // var cat = new Cat(this);
-            // var catincar = cat.CatInCar();
-            // document.body.append(catincar);
-            // this.scene = new Minigame1(this);
-            this.mainScene();
+            new MakeCoverAndThumbnail(this);
+            // this.mainScene();
         })
         return;
     }
@@ -2173,6 +2115,7 @@ class Game extends GameEnginge{
             navItems.push({html : '<button >Resume</button>', f:'resume'});
         }
         navItems.push(...[
+            {html : `<button> About </button>`,   f:'about'},
             {html : `<button >Music ${this.config.music ? 'ON': 'OFF'}</button>`,   f:'music'},
         ]);
         if(!this.gameover){
@@ -2193,6 +2136,8 @@ class Game extends GameEnginge{
         this.resetBody();
         this.body.innerHTML = '';
         this.gamemap = new GameMap(this);
+        this.portals = this.gamemap.locations_portal.map(loc => new Portal(this,loc));
+
         this.canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
         this.body.innerHTML = '';
         this.body.appendChild(this.canvas);
@@ -2202,20 +2147,17 @@ class Game extends GameEnginge{
             new Clickable(0,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('📋',CELLSIZE*1.5,1.4),(e)=>{this.showMenu()})
         ]
         this.objects = [
-            this.player
+            this.player,
+            ...this.portals
         ]
         this.body.innerHTML = '';
         this.body.appendChild(this.canvas);
         this.body.appendChild(this.helpdom);
         this.update(0);
+        this.scene = new Intro(this);
         this.events = {
             touchstart : false
         }
-        window.addEventListener('keyup',(e)=>{
-            if(e.key=='Escape'){
-                this.showMenu();
-            }
-        })
         this.touchPos = null;
         this.canvas.addEventListener('mousedown', (e) => handleStart(e));
         this.canvas.addEventListener('mouseup', () => handleEnd());
@@ -2276,6 +2218,32 @@ class Game extends GameEnginge{
             this.dialog.remove();
             this.mainScene();
         }
+        else if(item == `about`){
+            if(this.dialog != null){this.dialog.remove();}
+            this.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
+            this.dialog.style.width = `${GameDimC*CELLSIZE}px`;
+            var h2 = `
+                <div class="helpDiv" color='#fff'>
+                    <h1>GAME STILL UNDER CONSTRUCTION</h1>
+                    <h3>entry in js13k games 2025</h3>
+                    <h3>visit <a href="https://pdemia.com/bcg">pdemia.com/bcg<a> for updates</h3>
+                    <h3>last update 12/9/2025 </h3>
+                    <p>mohammad0jawad@gmail.com</p>
+                </div>
+            `;
+            var mdom = G.makeDom('<button>Back</button>');
+            mdom.onclick = ()=>{
+                this.gamePased = false;
+                this.dialog.remove();
+                this.showMenu(true);
+                // this.update(this.time);
+            }
+            this.dialog.innerHTML += h2;
+            var helpDiv = this.dialog.querySelector('.helpDiv');
+            helpDiv.style['overflow-y'] = `auto`;
+            this.dialog.append(mdom);
+            this.body.append(this.dialog);
+        }
         else if(item == 'paracticecombat'){
             this.gamePased = true;
             this.dialog.remove();
@@ -2310,47 +2278,15 @@ class Game extends GameEnginge{
         );
         return cropmap;
     }
-    genOverlayHidden(map,playerpos,r ){
-        var mapOverlay = G.makeCanvas(map.w,map.h);
-        mapOverlay.fill('#200445bf');
-        var mapSee = G.makeCanvas(map.w,map.h);
-        var circle = G.MakeCircle(r,null,'#fff');
-        mapSee.ctx.drawImage(circle,playerpos.x - circle.w/2, playerpos.y - circle.h/2);
-        var overlay = G.fuseImage(mapOverlay,mapSee,'destination-out');
-        return overlay;
-    }
-    drawVisibilityOverlay(ctx, playerPos, visibilityRadius, darkness = 0.9) {
-        ctx.save();
-        ctx.globalAlpha = darkness; // 0.0 (transparent) to 1.0 (fully dark)
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.beginPath();
-        ctx.arc(
-            playerPos.x,
-            playerPos.y,
-            visibilityRadius,
-            0, Math.PI * 2
-        );
-        ctx.fill();
-
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.globalAlpha = 1;
-        ctx.restore();
-    }
     update(t){
         if(this.gamePased == true){return;}
         if(this.gameover == true) return this.gameOverScene();
         this.objects.forEach(x=> x.update(t));
         var basemaplayout = this.gamemap.getMap();
         var bufferctx = basemaplayout.ctx;
-        
-        // var overlay = this.genOverlayHidden(basemaplayout,this.player.center,this.player.visibility);
         //draw player and objects on map
         this.objects.sort((a, b) => {return a.pos ? a.pos?.y : Infinity - b.pos ? b.pos?.y : Infinity;});
         this.objects.forEach(x=> x.draw(bufferctx));
-        // this.drawVisibilityOverlay(bufferctx,this.player.center,this.player.visibility);
         var startX = Math.max(0,this.player.center.x - this.canvasDim.w / 2);
         var startY = Math.max(0,this.player.center.y - this.canvasDim.h / 2);
         var crop = G.crop(basemaplayout,
@@ -2359,10 +2295,7 @@ class Game extends GameEnginge{
             this.canvasDim.w,
             this.canvasDim.h
         );
-        
-
-
-        // this.canvas.fill('#fff');
+        this.canvas.fill('#88bfff');
         this.canvas.ctx.drawImage(crop,0,0);
         this.canvas.ctx.fillRect
         this.menuclickables.forEach(x=> x.draw(this.canvas.ctx));
@@ -2374,32 +2307,25 @@ class Game extends GameEnginge{
         this.time = t;
         requestAnimationFrame(newtime=>this.update(newtime));
     }
-    parseTime(s){
-        let m = Math.floor(s / 60);
-        let h = Math.floor(m / 60);
-        h = h == 0 ? '' : h < 10 ? `0${h}:` : `${h}:`;
-        m = Math.floor(m % 60);
-        m = m == 0 ? '' : m < 10 ? `0${m}:` : `${m}:`;
-        s = Math.floor(s % 60);
-        return `${h}${m}${s}`;
-    }
-    getThumbnail(){
-        var canvas = G.makeCanvas(320,320);
-        var space = G.randomPattern('#000','#fff',0.001,500,500);
-        var gamename = G.getTextSprite(`FAMILIAR`,   16, `#fff`, 1.5, 'cursive');
-        var pos = G.Point({x:canvas.w/2,y:canvas.h/2});
-        canvas.fillPatern(space);
-        canvas.ctx.drawImage(gamename,canvas.w/2-gamename.w/2,canvas.h-gamename.h*2);
-        return canvas;
-    }
-    getCover(){
-        var canvas = G.makeCanvas(800,500);
-        var space = G.randomPattern('#000','#fff',0.001,500,500);
-        var gamename = G.getTextSprite(`FAMILIAR`,   32, `#fff`, 1.5, 'cursive');
-        var pos = G.Point({x:canvas.w/2,y:canvas.h/2});
-        canvas.fillPatern(space);
-        canvas.ctx.drawImage(gamename,0,canvas.h-gamename.h*2);
-        return canvas;
+    openPortalMenu(portal){
+        if(this.dialog != null){this.dialog.remove();}
+        this.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
+        var infodom = G.makeDom(`<div><h3>Portal Level ${portal.level}<h3></div>`);
+        infodom.style.height = this.canvas.height/2 + 'px';
+        this.dialog.append(infodom);
+        var nav = G.GenTable(2,1);
+        nav.entities[0][0].innerHTML = '<button >Enter</button>';
+        nav.entities[0][0].onclick = ()=>{
+            this.dialog.remove();
+            this.gamePased = true;//disable main flow
+            this.scene = new DungeonScene(this,portal,this.player);
+        }
+        nav.entities[1][0].innerHTML = '<button >Leave</button>';
+        nav.entities[1][0].onclick = ()=>{
+            this.dialog.remove();
+        }
+        this.dialog.append(nav);
+        this.body.append(this.dialog);
     }
     getMainMenuBg(canvas){
         var scene = new SummoningCatScene(this);
@@ -2410,6 +2336,132 @@ class Game extends GameEnginge{
             requestAnimationFrame(update);
         }
         requestAnimationFrame(update);
+    }
+}
+class MakeCoverAndThumbnail{
+    constructor(game){
+        this.game = game;
+        this.familiarSprite = this.GenFamiliarSprite();
+        this.witchsprite = game.spriteEngine.red_witch;
+
+
+
+
+
+        this.credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
+        var cat = new Cat(game);
+        this.catIdle = cat.Idle();
+        this.catIdleShadow = G.GenShadow(this.catIdle,2,'#fff');
+        this.catorbit = this.GenCatOrbit();
+        this.catorbit2 = this.GenCatOrbit(600,600,200);
+        var thumbnail = this.getThumbnail();
+        var cover = this.getCover();
+        document.body.append(thumbnail);
+        document.body.append(cover);
+    }
+    GenCatOrbit(w = 300,h = 300,r = 112){
+        var w = w;
+        var h = h;
+        var canvas = G.makeCanvas(w,h);
+        var ctx = canvas.ctx;
+
+        this.elements = [
+            {s:G.getEmojiSprite('🔥',32,1.4),c:'#ee4000c7',i:0},
+            {s:G.getEmojiSprite('💧',32,1.4),c:'#00c7eec7',i:10},
+            {s:G.getEmojiSprite('🌱',32,1.4),c:'#805a05c7',i:20},
+            {s:G.getEmojiSprite('🌪️',32,1.4),c:'#cdcf84c7',i:30},
+            {s:G.getEmojiSprite('⚡',32,1.4),c:'#f9ff30c7',i:40},
+            {s:G.getEmojiSprite('🌑',32,1.4),c:'#a83bf3c7',i:50},
+            {s:G.getEmojiSprite('☀️',32,1.4),c:'#f8ff00c7',i:60},
+        ];
+
+
+        var circlesprite = G.MakeCircle(r,'#fff',null,3);
+        var centerY = h/2;
+        var centerX = w/2;
+        var circle = {x : centerX, y : centerY, r : circlesprite.w/2};
+        this.circlepoints = pointsOnCircle(circle.x,circle.y,circle.r,70);
+        ctx.drawImage(circlesprite, centerX - circlesprite.w/2, centerY- circlesprite.h/2);
+
+        this.elements.forEach(el=>{
+            var pos = this.circlepoints[el.i % this.circlepoints.length];
+           ctx.drawImage(el.s,
+                pos.x - el.s.w/2,
+                pos.y - el.s.h/2
+            );
+            var randotherelements = this.elements.filter(x=> x.c != el.c);
+            randotherelements.forEach(randotherelement=>{
+                    var otherpos = this.circlepoints[randotherelement.i % this.circlepoints.length];
+                   ctx.save();
+                   ctx.globalAlpha = 0.3;
+                   ctx.strokeStyle = el.c;
+                   ctx.lineWidth = 2;
+                   ctx.beginPath();
+                   ctx.moveTo(
+                        pos.x,
+                        pos.y
+                    );
+                   ctx.lineTo(
+                        otherpos.x,
+                        otherpos.y
+                    );
+                   ctx.stroke();
+                   ctx.globalAlpha = 1;
+                   ctx.restore();
+            });
+            //move to next
+            el.t--;if(el.t <= 0){el.t = this.rotspeed;el.i++;}
+        });
+        ctx.drawImage(this.catIdleShadow, w/2 -this. catIdleShadow.w/2, h/2 - this.catIdleShadow.h/2);
+        ctx.drawImage(this.catIdle, w/2 -this. catIdle.w/2, h/2 - this.catIdle.h/2);
+
+        return canvas;
+    }
+    GenFamiliarSprite(){
+        var letters = ['T','H','E',' ','F','A','M','I','L','I','A','R'];
+        var canvas = G.makeCanvas(64*letters.length,CELLSIZE+4);
+        var cx = 0;
+        for(let i in letters){
+            var sprite = G.getTextSprite(letters[i],CELLSIZE,'#fff',1.1,'cursive');
+            var sprite2 = G.getTextSprite(letters[i],CELLSIZE,'#b90000',1.1,'cursive');
+            canvas.ctx.drawImage(sprite, cx+1,1);
+            canvas.ctx.drawImage(sprite2, cx, 0);
+            cx += CELLSIZE;
+        }
+        return canvas;
+    }
+    getThumbnail(){
+        var w = 320;
+        var h = 320;
+        var canvas = G.makeCanvas(w,h);
+        var space = G.randomPattern('#000','#fff',0.001,w,h);
+        canvas.fillPatern(space);
+
+        canvas.ctx.drawImage(this.witchsprite, w/2-this.witchsprite.w/2 - this.witchsprite.w,  h/2-this.witchsprite.h/2);
+        canvas.ctx.drawImage(this.witchsprite, w/2-this.witchsprite.w/2 + this.witchsprite.w,  h/2-this.witchsprite.h/2);
+        canvas.ctx.drawImage(this.catorbit, w/2-this.catorbit.w/2,  h/2-this.catorbit.h/2);
+        
+        var pt1 = G.crop(this.familiarSprite,0,0,CELLSIZE*4,this.familiarSprite.h);
+        var pt2 = G.crop(this.familiarSprite,CELLSIZE*4,0,this.familiarSprite.w - CELLSIZE*4,this.familiarSprite.h);
+
+        canvas.ctx.drawImage(pt1,0,0);
+        canvas.ctx.drawImage(pt2,0,pt1.h);
+        canvas.ctx.drawImage(this.credit, 0,  canvas.h - this.credit.h);
+        return canvas;
+    }
+    getCover(){
+        var w= 800;var h = 500;
+        var canvas = G.makeCanvas(w,h);
+        var space = G.randomPattern('#000','#fff',0.001,w,h);
+        canvas.fillPatern(space);
+        canvas.ctx.drawImage(this.witchsprite, w/2-this.witchsprite.w/2 - this.witchsprite.w,  h/2-this.witchsprite.h/2);
+        canvas.ctx.drawImage(this.witchsprite, w/2-this.witchsprite.w/2 + this.witchsprite.w,  h/2-this.witchsprite.h/2);
+        canvas.ctx.drawImage(this.catorbit2, w/2-this.catorbit2.w/2,  h/2-this.catorbit2.h/2);
+
+        canvas.ctx.drawImage(this.familiarSprite,canvas.w/2-this.familiarSprite.w/2,CELLSIZE);
+
+        canvas.ctx.drawImage(this.credit, 0,  canvas.h - this.credit.h);
+        return canvas;
     }
 }
 class SummoningCatScene{
