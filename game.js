@@ -2065,8 +2065,8 @@ class Game extends GameEnginge{
             this.cellSize = CELLSIZE;
             this.spriteEngine = new SpriteEngine(img);
             this.objects = [];
-            new MakeCoverAndThumbnail(this);
-            // this.mainScene();
+            // new MakeCoverAndThumbnail(this);
+            this.mainScene();
         })
         return;
     }
@@ -2437,13 +2437,9 @@ class MakeCoverAndThumbnail{
         var space = G.randomPattern('#000','#fff',0.001,w,h);
         canvas.fillPatern(space);
 
-        canvas.ctx.drawImage(this.witchsprite, w/2-this.witchsprite.w/2 - this.witchsprite.w,  h/2-this.witchsprite.h/2);
-        canvas.ctx.drawImage(this.witchsprite, w/2-this.witchsprite.w/2 + this.witchsprite.w,  h/2-this.witchsprite.h/2);
         canvas.ctx.drawImage(this.catorbit, w/2-this.catorbit.w/2,  h/2-this.catorbit.h/2);
-        
         var pt1 = G.crop(this.familiarSprite,0,0,CELLSIZE*4,this.familiarSprite.h);
         var pt2 = G.crop(this.familiarSprite,CELLSIZE*4,0,this.familiarSprite.w - CELLSIZE*4,this.familiarSprite.h);
-
         canvas.ctx.drawImage(pt1,0,0);
         canvas.ctx.drawImage(pt2,0,pt1.h);
         canvas.ctx.drawImage(this.credit, 0,  canvas.h - this.credit.h);
