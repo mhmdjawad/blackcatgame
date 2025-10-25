@@ -13,6 +13,12 @@ A magical, fast-paced browser game where you play as a black cat on a quest to s
 
 ---
 
+**▶️ Play it online:**
+
+- **View the game live:** [https://mhmdjawad.github.io/blackcatgame/](https://mhmdjawad.github.io/blackcatgame/)
+
+---
+
 ## 🚀 What Makes This Game Special?
 
 - **Size-optimized for JS13k:** All gameplay, art, sound, and logic fit in a single compressed JavaScript file under 13 kilobytes.
