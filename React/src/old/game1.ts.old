@@ -1,0 +1,1638 @@
+interface GameCanvasElement extends HTMLCanvasElement {
+    w: number;
+    h: number;
+    ctx: CanvasRenderingContext2D;
+    center: { x: number; y: number };
+    clear: () => void;
+    fill: (color: string) => void;
+    fillPatern: (img: CanvasImageSource) => void;
+}
+interface GameTableElement extends HTMLTableElement{
+    entities : HTMLTableCellElement[][];
+}
+interface Rect {
+    w:number;
+    h:number;
+}
+interface NavItem{
+    html : string,
+    f : string
+}
+class Point{
+    x : number;
+    y : number;
+
+    constructor(pos : Point){
+        this.x = pos.x;
+        this.y = pos.y;
+    }
+    moveToward(p2 : Point,dist=1){
+        var vx = this.x == p2.x ? 0 : this.x < p2.x ? dist : -dist;
+        var vy = this.y == p2.y ? 0 : this.y < p2.y ? dist : -dist;
+        this.x += vx;
+        this.y += vy;
+    }
+    distance(p2 : Point){
+        let distance = 0;
+        distance += Math.pow((this.x - p2.x), 2);
+        distance += Math.pow((this.y - p2.y), 2);
+        distance = Math.sqrt(distance);
+        return distance;
+    }
+    getAngleTo(target : Point){
+        let dx = target.x - this.x;
+        let dy = target.y - this.y;
+        
+        let angleRadians = Math.atan2(dy, dx);
+        return angleRadians * 180/Math.PI;
+    }
+    moveByAngle(rotation : number,distance : number){
+        const rRad = rotation * (Math.PI / 180);
+        const vx = distance * Math.cos(rRad);
+        const vy = distance * Math.sin(rRad);
+        this.x = this.x + vx;
+        this.y = this.y + vy;
+    }
+}
+class G{
+    static EmptyCanv(){
+        return this.makeCanvas();
+    }
+    static makeCanvas(w=0,h=0){
+        let c = document.createElement('canvas') as GameCanvasElement;
+        c.width = w;
+        c.height = h;
+        c.w=w;
+        c.h=h;
+        c.ctx = c.getContext('2d') || new CanvasRenderingContext2D;
+        c.center = {x: w/2,y:h/2}
+        c.clear = ()=>{
+            c.ctx?.clearRect(0,0,w,h);
+        }
+        c.fill = (color)=>{
+            var ctx = c.getContext('2d');
+            if(ctx != null){
+                ctx.fillStyle = color;
+                ctx.fillRect(0,0,w,h);
+            }
+        }
+        c.fillPatern = (img)=>{
+            let ctx = c.getContext('2d');
+            if(ctx != null){
+                const pattern = ctx.createPattern(img, "repeat") as CanvasPattern;
+                ctx.fillStyle = pattern;
+                ctx.fillRect(0, 0, w, h);
+            }
+        }
+        return c;
+    }
+    static Point(pos : Point){
+        return new Point(pos);
+    }
+    static getEmojiSprite(emoji : any,size : number,factor = 1.3, color = '#000', font = 'sans-serif'){
+        let canvas = G.makeCanvas(size,size);
+        var ctx = canvas.ctx;
+        if(!ctx) return canvas;
+        ctx.font = `${size/factor}px ${font}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = color;
+        ctx.fillText(emoji,size/2, size*1.1/2);
+        return canvas;
+    }
+    static getTextSprite(text :string ,size : number, color : string,  factor = 0.8, font = 'sans-serif'){
+        text = text.toUpperCase();
+        let canvas = G.makeCanvas(size * text.length, size);
+        for(let i = 0 ; i < text.length;i++){
+            var ls = G.getEmojiSprite(text[i],size,factor, color, font);
+            canvas.ctx && canvas.ctx.drawImage(ls,i * size,0);
+        }
+        return canvas;
+        
+    }
+    static fuseImage(canvas : GameCanvasElement ,canvas2 : GameCanvasElement,composite = 'source-atop' as GlobalCompositeOperation){
+        let buffer = G.makeCanvas(canvas.width,canvas.height);
+        let ctx = buffer.ctx;
+        if(!ctx) return buffer;
+        ctx.drawImage(canvas,0,0);
+        ctx.globalCompositeOperation = composite;
+        for(let i = 0 ; i < canvas.width/canvas2.width;i++){
+            for(let j = 0 ; j < canvas.height/canvas2.height;j++){
+                ctx.drawImage(canvas2,i * canvas2.width,j * canvas2.height);
+            }
+        }
+        return buffer;
+    }
+    static rotateCanvas(_image : GameCanvasElement,deg : number){
+        var image = (deg % 90 != 0) ? G.prepForRotate(_image) : _image;
+        var canvas = G.makeCanvas(image.width,image.height);
+        var ctx = canvas.ctx;
+        if(!ctx) return image;
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(deg * Math.PI / 180);
+        ctx.drawImage(image, -image.width / 2, -image.height / 2);
+        ctx.restore();
+        return canvas;
+    }
+    static prepForRotate(image : GameCanvasElement){
+        let d = Math.sqrt( Math.pow(image.width,2)+Math.pow(image.height,2));
+        let buffer = G.makeCanvas(d,d);
+        if(!buffer.ctx) return buffer;
+        buffer.ctx.drawImage(image,(d - image.width) /2,(d - image.height) /2);
+        return buffer;
+    }
+    static mirror(canvas : GameCanvasElement,hor = true){
+        let buffer = G.makeCanvas(canvas.width,canvas.height);
+        let context = buffer.ctx;
+        if(!context) return buffer;
+        context.save();
+        if(hor){
+            context.scale(-1, 1);
+            context.drawImage(canvas, 0, 0, canvas.width*-1, canvas.height);
+        }
+        else{
+            context.scale(1, -1);
+            context.drawImage(canvas, 0, 0, canvas.width, canvas.height*-1);
+        }
+        context.restore();
+        return buffer;
+    }
+    static gridBG(color1 = "lightgrey",color2 = null, scale = 8, width=1){
+        var canvas = G.makeCanvas(scale,scale);
+        var ctx = canvas.ctx;
+        if(!ctx) return canvas;
+        ctx.fillStyle = color1;
+        ctx.fillRect(0,0,scale,scale);
+        if(color2 == null){
+            ctx.clearRect(0,0,scale-width,scale-width);
+        }
+        else{
+            ctx.fillStyle = color2;
+            ctx.fillRect(0,0,scale-width,scale-width);
+        }
+        return canvas;
+    }
+    static Lightify(canvas : GameCanvasElement,opacity : number){
+        let buffer = G.makeCanvas(canvas.width,canvas.height);
+        buffer.ctx.globalAlpha = opacity;
+        buffer.ctx.drawImage(canvas,0,0);
+        buffer.ctx.globalAlpha = 1;
+        return buffer;
+    }
+    static makeDom(html : string) : HTMLElement{
+        var h = document.createElement('div');
+        h.innerHTML = html;
+        return h.firstChild as HTMLElement || document.createElement('div').firstChild;
+    }
+    static shuffleArray(array : Array<any>) {
+        for (let i = array.length - 1; i > 0; i--) {const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]];}return array;
+    }
+    static repeatCanvas(canvas:GameCanvasElement,r:number,c=0){
+        if (c == 0) c = r;
+        var buffer = G.makeCanvas(canvas.width * c, canvas.height * r);
+        var pattern = buffer.ctx.createPattern(canvas, 'repeat') || new CanvasPattern;
+        buffer.ctx.fillStyle = pattern;
+        buffer.ctx.fillRect(0, 0, buffer.w, buffer.h);
+        return buffer;
+    }
+    static merge(list : Array<GameCanvasElement>,w : number,h : number){
+        var c = G.makeCanvas(w,h);
+        for(let i in list){
+            c.ctx.drawImage(list[i],0,0);
+        }
+        return c;
+    }
+    static brickPattern(color1 = "#fff",color2 = "#000", r = 1){
+        var canvas = G.makeCanvas(8,8);
+        var ctx = canvas.ctx;
+        ctx.fillStyle = color1;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = color2;
+        ctx.fillRect(7,0,1,4);
+        ctx.fillRect(0,3,8,1);
+        ctx.fillRect(4,4,1,4);
+        ctx.fillRect(0,7,8,1);
+        if(r > 1){return G.repeatCanvas(canvas,r,r);}
+        return canvas;
+    }
+    static randomPattern(color1 : any,color2:any,bias = 0.3,w=8,h=8){
+        var canvas = G.makeCanvas(w,h);
+        var ctx = canvas.ctx;
+        ctx.fillStyle = color1;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = color2;
+        for(let i = 0 ; i < h ; i ++){
+            for(let j = 0 ; j < w ; j++){
+                if(Math.random() < bias) ctx.fillRect(j,i,1,1);
+            }
+        }
+        return canvas;
+    }
+    static MakeCircle(r:number,stroke = null,fill = null){
+        var s = G.makeCanvas(r*2+2,r*2+2);
+        var ctx = s.ctx;
+        ctx.beginPath();
+        ctx.arc(s.width/2,s.height/2,r,0,Math.PI * 2,false);
+        if(stroke != null){ctx.strokeStyle = stroke;ctx.stroke();}
+        if(fill != null){ctx.fillStyle = fill;ctx.fill();}
+        return s;
+    }
+    static movePointToward(pos : Point,rotation : number,distance : number){
+        const rRad = rotation * (Math.PI / 180);
+        const vx = distance * Math.cos(rRad);
+        const vy = distance * Math.sin(rRad);
+        return {
+            x : pos.x + vx,
+            y : pos.y + vy
+        }
+    }
+    static loadImage(url : string,callback : Function){
+        var img = new Image();
+        img.src = url;
+        img.addEventListener('load',()=>{
+            callback(img);
+        });
+    }
+    static getColor(r : number, g : number, b : number, a : number){
+        if(r+g+b+a == 0){return null;}
+        else if(r+g+b == 0){return '#000000';}
+        else if (r > 255 || g > 255 || b > 255){return '#000000';}
+        return '#' + ((r << 16) + (g << 8) + b).toString(16).padStart(6, '0');
+    }
+    static getColorMatrix (canvas : GameCanvasElement,changefct : Function) : Array<Array<any>>{
+        var context = canvas.getContext('2d');
+        var width = canvas.width;
+        var height = canvas.height;
+        var imageData = context && context.getImageData(0, 0, width, height);
+        var data = imageData && imageData.data;
+        var colorMatrix = [];
+        var matrix = [] as Array<Array<any>>;
+        if(!data) return matrix;
+        for (var i = 0; i < data.length; i += 4) {
+            colorMatrix.push(
+                G.getColor(
+                    data[i],
+                    data[i + 1],
+                    data[i + 2],
+                    data[i + 3]
+                    )
+                );
+        }
+        for(let i = 0 ; i < canvas.height;i++){matrix[i] = [];}
+        let c = 0, r = 0;
+        for(let i = 0 ; i < colorMatrix.length;i++){
+            if(c >= canvas.width){r++;c=0}
+            matrix[r][c] = colorMatrix[i];
+            if(changefct) matrix[r][c] = changefct(matrix[r][c]);
+            c++;
+        }
+        return matrix;
+    }
+    static imgToCanvas(img : any){
+        var c = G.makeCanvas(img.width,img.height);
+        c.ctx.drawImage(img,0,0);
+        return c;
+    }
+    static colorsMatrixToSprite(matrix : any,scale = 1,deform : Function = (r:any)=>r){
+        let height = matrix.length;
+        let width = Math.max(...matrix.map((row : Array<any>)=> row.length));
+        var buffer = G.makeCanvas(width * scale,height* scale);
+        var ctx = buffer.ctx;
+        for(let i = 0 ; i < height;i++){
+            for(let j = 0 ; j < width;j++){
+                var color = matrix[i][j];
+                if(deform) color = deform(color);
+                if(!color || color == '') continue;
+                ctx.fillStyle = color;
+                ctx.fillRect(j*scale,i*scale,scale,scale);
+            }
+        }
+        return buffer;
+    }
+    static crop(canvas :any,x : number,y :number,width:number,height:number){
+        let buffer = G.makeCanvas(width,height);
+        buffer.ctx.drawImage(canvas,x,y,width,height,0,0,width,height);
+        return buffer;
+    }
+    static randomColor(){
+        var letters = "0123456789ABCDEF";
+        var color = "#";
+        for (var i = 0; i < 6; i++) {color += letters[Math.floor(Math.random() * 16)];}
+        return color; 
+    }
+    static GenShadow(canvas : GameCanvasElement,thickness : number,color : string){
+        var canvasColor = G.makeCanvas(canvas.w,canvas.h);
+        canvasColor.fill(color);
+        var fused = G.fuseImage(canvas,canvasColor,'source-atop');
+        var canvas2 = G.makeCanvas(canvas.w + thickness, canvas.h + thickness);
+        canvas2.ctx.drawImage(fused,0,0,canvas2.w,canvas2.h);
+        return canvas2;
+    }
+    static NormGrid(value : number,base : number){
+        return (Math.floor(value/base) * base) + base/2;
+    }
+    static rand (a=1, b=0){ return b + (a-b)*Math.random();}
+    static randInt (a=1, b=0){ return G.rand(a,b)|0;}
+
+    static GenTable(rows : number,cols : number){
+        var html = ``;
+        for(let i = 0 ; i < rows ; i++){
+            html += `<tr>`;
+            for(let j = 0 ; j < cols;j++){
+                html += `<td></td>`;
+            }
+            html += `</tr>`;
+        }
+        var table = document.createElement('table') as GameTableElement;
+        table.innerHTML = html;
+        var entities = [];
+        var trs = table.querySelectorAll('tr');
+        for(let i = 0 ; i < trs.length; i++){
+            var tds = trs[i].querySelectorAll('td');
+            // tds.forEach(x=> x.html = (html)=>x.innerHTML=html);
+            entities[i] = [...tds];
+        }
+        table.entities = entities;
+        return table;
+    }
+}
+class SpriteEngine{
+    
+    black_cat: GameCanvasElement = G.makeCanvas(0,0);
+    mapBlueprint: GameCanvasElement = G.makeCanvas(0,0);
+    witch: GameCanvasElement = G.makeCanvas(0,0);
+    small_cat: GameCanvasElement = G.makeCanvas(0,0);
+
+    constructor(img : any){
+        if(img){
+            var imgCanvas = G.imgToCanvas(img);
+            var mat = G.getColorMatrix(imgCanvas,(r:any)=>{
+                if(r == '') return null;
+                if(r == '#fff') return null;
+                if(r == '#ffffff') return null;
+                return r;
+            });
+            var MULT = 1;
+            var cvs = G.colorsMatrixToSprite(mat,MULT);
+            this.black_cat = G.crop(cvs,0,0,MULT*32*2,MULT*32*2);
+            this.mapBlueprint = G.crop(cvs,0,32*2,MULT*32*2,MULT*32*2);
+            this.witch = G.crop(cvs,32*2,0,MULT*32*2,MULT*32*5);
+            this.small_cat = G.crop(cvs,32*4,32*3,MULT*32,MULT*32);
+        }
+        
+    }
+    AnimateCat() : Array<GameCanvasElement>{
+        var mainSprite = G.imgToCanvas(this.black_cat);
+        var sprites = [];
+        var tail = G.crop(mainSprite, 48,48,21,8);
+        var tailInverse = G.mirror(tail,false);
+        var leftFoot = G.crop(mainSprite, 13,56,16,8);
+        var rightFoot = G.crop(mainSprite, 35,56,16,8);
+
+        //clear positions
+        mainSprite.ctx.clearRect(48,48,21,8); //tail
+        mainSprite.ctx.clearRect(13,56,16,8); //left
+        mainSprite.ctx.clearRect(35,56,16,8); //right
+        var spriteSpec = [
+            {L : 0 , R : 0 , IT : 0}, // idle 1 normal
+            {L : 0 , R : 0 , IT : 0}, // idle move tail
+            {L : -4 , R : 0 , IT : 0}, // left leg up tail norm
+            {L : -4 , R : 0 , IT : 1}, //left leg up tail inv
+            {L : 0 , R : -4 , IT : 0}, //right leg up tail norm
+            {L : 0 , R : -4 , IT : 1}, //right leg up tail inv
+        ]; 
+        for(let i in spriteSpec){
+            var spec = spriteSpec[i];
+            var clone = G.imgToCanvas(mainSprite);
+            clone.ctx.drawImage(leftFoot, 13,56 + spec.L);
+            clone.ctx.drawImage(rightFoot, 35,56 + spec.R);
+            if(spec.IT){
+                clone.ctx.drawImage(tailInverse, 48, 48+4);
+            }
+            else{
+                clone.ctx.drawImage(tail, 48, 48);
+            }
+            sprites.push(clone);
+        }
+        return sprites;
+    }
+}
+class Cat{
+    animations : Array<GameCanvasElement>;
+    constructor(game : Game){
+        this.animations = game.spriteEngine.AnimateCat(); 
+    }
+    Idle() : GameCanvasElement{
+        return this.animations[0];
+    }
+    IdleAnimation() : Array<GameCanvasElement>{
+        return [
+            this.animations[0],
+            this.animations[1]
+        ]
+    }
+    WalkingAnimation() : Array<GameCanvasElement>{
+        var frames = [];
+        for(let i = 2 ; i <= 5;i++){
+            frames.push(this.animations[i]);
+        }
+
+        return frames;
+    }
+}
+let CELLSIZE = 64;
+let GameDimR = 10;
+let GameDimC = 10;
+var songBgm = {songData: [{ i: [0, 0, 140, 0, 0, 0, 140, 0, 0, 255, 158, 158, 158, 0, 0, 0, 0, 51, 2, 1, 2, 58, 239, 0, 32, 88, 1, 157, 2 ],p: [1,1,1,1],c: [{n: [161,,,,,,,,,,,,,,,,163,,,,,,,,159],f: []}]},{ i: [0, 91, 128, 0, 0, 95, 128, 12, 0, 0, 12, 0, 72, 0, 0, 0, 0, 0, 0, 0, 2, 255, 0, 0, 32, 83, 3, 130, 4 ],p: [1,1,2,1],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144],f: []},{n: [156,,163,,161,,159,,158,,159,,158,,156,,156,,163,,161,,159,,158,,159,,158,,168],f: []}]},{ i: [0, 16, 133, 0, 0, 28, 126, 12, 0, 0, 2, 0, 60, 0, 0, 0, 0, 0, 0, 0, 2, 91, 0, 0, 32, 47, 3, 157, 2 ],p: [1,2,1,2],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144],f: []},{n: [168,,175,,173,,171,,170,,171,,170,,168,,168,,175,,173,,171,,170,,171,,170,,168],f: []}]},{ i: [0, 255, 116, 79, 0, 255, 116, 0, 83, 0, 4, 6, 69, 52, 0, 0, 0, 0, 0, 0, 2, 14, 0, 0, 32, 0, 0, 0, 0 ],p: [1,1,1,1],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144,,,159,,,,159,,,,159,,,,,,,,,,,,159,,159],f: []}]},],rowLen: 8269,   patternLen: 32,  endPattern: 3,  numChannels: 4  };
+// const EMOJI = G.getEmojiSprite(`💓`,64,1.3);
+class CPlayer {
+    mOscillators : Array<Function>;
+
+    mSong : any;
+    mLastRow : number;
+    mCurrentCol : number;
+    mNumWords : number;
+    mMixBuf : any;
+
+
+    constructor() {
+        this.mOscillators = [
+            this.osc_sin,
+            this.osc_square,
+            this.osc_saw,
+            this.osc_tri
+        ];
+        this.mSong = null;
+        this.mLastRow = 0;
+        this.mCurrentCol = 0;
+        this.mNumWords = 0;
+        this.mMixBuf = null;
+    }
+    osc_sin(value : number){
+        return Math.sin(value * 6.283184);
+    }
+    osc_saw(value : number) {
+        return 2 * (value % 1) - 1;
+    }
+    osc_square(value: number) {
+        return (value % 1) < 0.5 ? 1 : -1;
+    }
+    osc_tri(value: number) {
+        const v2 = (value % 1) * 4;
+        if (v2 < 2) return v2 - 1;
+        return 3 - v2;
+    }
+    getnotefreq(n: number) {
+        return 0.003959503758 * (2 ** ((n - 128) / 12));
+    }
+    createNote(instr : any, n : number, rowLen : number) {
+        const osc1 = this.mOscillators[instr.i[0]];
+        const o1vol = instr.i[1];
+        const o1xenv = instr.i[3] / 32;
+        const osc2 = this.mOscillators[instr.i[4]];
+        const o2vol = instr.i[5];
+        const o2xenv = instr.i[8] / 32;
+        const noiseVol = instr.i[9];
+        const attack = instr.i[10] * instr.i[10] * 4;
+        const sustain = instr.i[11] * instr.i[11] * 4;
+        const release = instr.i[12] * instr.i[12] * 4;
+        const releaseInv = 1 / release;
+        const expDecay = -instr.i[13] / 16;
+        let arp = instr.i[14];
+        const arpInterval = rowLen * (2 ** (2 - instr.i[15]));
+        const noteBuf = new Int32Array(attack + sustain + release);
+        let c1 = 0, c2 = 0;
+        let o1t = 0;
+        let o2t = 0;
+        for (let j = 0, j2 = 0; j < attack + sustain + release; j++, j2++) {
+            if (j2 >= 0) {
+                arp = (arp >> 8) | ((arp & 255) << 4);
+                j2 -= arpInterval;
+                o1t = this.getnotefreq(n + (arp & 15) + instr.i[2] - 128);
+                o2t = this.getnotefreq(n + (arp & 15) + instr.i[6] - 128) * (1 + 0.0008 * instr.i[7]);
+            }
+            let e = 1;
+            if (j < attack) {
+                e = j / attack;
+            } else if (j >= attack + sustain) {
+                e = (j - attack - sustain) * releaseInv;
+                e = (1 - e) * (3 ** (expDecay * e));
+            }
+            c1 += o1t * e ** o1xenv;
+            let rsample = osc1(c1) * o1vol;
+            c2 += o2t * e ** o2xenv;
+            rsample += osc2(c2) * o2vol;
+            if (noiseVol) {
+                rsample += (2 * Math.random() - 1) * noiseVol;
+            }
+            noteBuf[j] = (80 * rsample * e) | 0;
+        }
+        return noteBuf;
+    }
+    initGenBuffer(song : any,context :any,callback :any){
+        this.init(song);
+        var loop = ()=>{
+            var done = this.generate();
+            if(done == 1){
+                var buffer = this.createAudioBuffer(context);
+                return callback(buffer);
+            }
+            else{
+                requestAnimationFrame(loop);
+            }
+        }
+        requestAnimationFrame(loop);
+    }
+    init(song:any) {
+        this.mSong = song;
+        this.mLastRow = song.endPattern;
+        this.mCurrentCol = 0;
+        this.mNumWords = song.rowLen * song.patternLen * (this.mLastRow + 1) * 2;
+        this.mMixBuf = new Int32Array(this.mNumWords);
+    }
+    generate() {
+        let i, j, p, row, col, n, cp, k, t, rsample, rowStartSample, f;
+        const chnBuf = new Int32Array(this.mNumWords);
+        const instr = this.mSong.songData[this.mCurrentCol];
+        const rowLen = this.mSong.rowLen;
+        const patternLen = this.mSong.patternLen;
+        let low = 0, band = 0, high;
+        let lsample, filterActive = false;
+        const noteCache = [];
+        for (p = 0; p <= this.mLastRow; ++p) {
+            cp = instr.p[p];
+            for (row = 0; row < patternLen; ++row) {
+                const cmdNo = cp ? instr.c[cp - 1].f[row] : 0;
+                if (cmdNo) {
+                    instr.i[cmdNo - 1] = instr.c[cp - 1].f[row + patternLen] || 0;
+                    if (cmdNo < 17) {
+                        noteCache.length = 0;
+                    }
+                }
+                const oscLFO = this.mOscillators[instr.i[16]];
+                const lfoAmt = instr.i[17] / 512;
+                const lfoFreq = (2 ** (instr.i[18] - 9)) / rowLen;
+                const fxLFO = instr.i[19];
+                const fxFilter = instr.i[20];
+                const fxFreq = instr.i[21] * 43.23529 * 3.141592 / 44100;
+                const q = 1 - instr.i[22] / 255;
+                const dist = instr.i[23] * 1e-5;
+                const drive = instr.i[24] / 32;
+                const panAmt = instr.i[25] / 512;
+                const panFreq = 6.283184 * (2 ** (instr.i[26] - 9)) / rowLen;
+                const dlyAmt = instr.i[27] / 255;
+                const dly = instr.i[28] * rowLen & ~1;  
+                rowStartSample = (p * patternLen + row) * rowLen;
+                for (col = 0; col < 4; ++col) {
+                    n = cp ? instr.c[cp - 1].n[row + col * patternLen] : 0;
+                    if (n) {
+                        if (!noteCache[n]) {
+                            noteCache[n] = this.createNote(instr, n, rowLen);
+                        }
+                        const noteBuf = noteCache[n];
+                        for (j = 0, i = rowStartSample * 2; j < noteBuf.length; j++, i += 2) {
+                          chnBuf[i] += noteBuf[j];
+                        }
+                    }
+                }
+                for (j = 0; j < rowLen; j++) {
+                    k = (rowStartSample + j) * 2;
+                    rsample = chnBuf[k];
+                    if (rsample || filterActive) {
+                        f = fxFreq;
+                        if (fxLFO) {
+                            f *= oscLFO(lfoFreq * k) * lfoAmt + 0.5;
+                        }
+                        f = 1.5 * Math.sin(f);
+                        low += f * band;
+                        high = q * (rsample - band) - low;
+                        band += f * high;
+                        rsample = fxFilter == 3 ? band : fxFilter == 1 ? high : low;
+                        if (dist) {
+                            rsample *= dist;
+                            rsample = rsample < 1 ? rsample > -1 ? this.osc_sin(rsample * .25) : -1 : 1;
+                            rsample /= dist;
+                        }
+                        rsample *= drive;
+                        filterActive = rsample * rsample > 1e-5;
+                        t = Math.sin(panFreq * k) * panAmt + 0.5;
+                        lsample = rsample * (1 - t);
+                        rsample *= t;
+                    } else {
+                        lsample = 0;
+                    }
+                    if (k >= dly) {
+                        lsample += chnBuf[k - dly + 1] * dlyAmt;
+                        rsample += chnBuf[k - dly] * dlyAmt;
+                    }
+                    chnBuf[k] = lsample | 0;
+                    chnBuf[k + 1] = rsample | 0;
+                    this.mMixBuf[k] += lsample | 0;
+                    this.mMixBuf[k + 1] += rsample | 0;
+                }
+            }
+        }
+        this.mCurrentCol++;
+        return this.mCurrentCol / this.mSong.numChannels;
+    }
+    createAudioBuffer(context:any) {
+        const buffer = context.createBuffer(2, this.mNumWords / 2, 44100);
+        for (let i = 0; i < 2; i++) {
+            const data = buffer.getChannelData(i);
+            for (let j = i; j < this.mNumWords; j += 2) {
+                data[j >> 1] = this.mMixBuf[j] / 65536;
+            }
+        }
+        return buffer;
+    }
+    createWave() {
+        const headerLen = 44;
+        const l1 = headerLen + this.mNumWords * 2 - 8;
+        const l2 = l1 - 36;
+        const wave = new Uint8Array(headerLen + this.mNumWords * 2);
+        wave.set([
+            82, 73, 70, 70, 
+            l1 & 255, (l1 >> 8) & 255, (l1 >> 16) & 255, (l1 >> 24) & 255,
+            87, 65, 86, 69, 
+            102, 109, 116, 32, 
+            16, 0, 0, 0, 
+            1, 0, 
+            2, 0, 
+            68, 172, 0, 0, 
+            16, 177, 2, 0, 
+            4, 0, 
+            16, 0, 
+            100, 97, 116, 97, 
+            l2 & 255, (l2 >> 8) & 255, (l2 >> 16) & 255, (l2 >> 24) & 255
+        ]);
+        for (let i = 0, idx = headerLen; i < this.mNumWords; ++i) {
+            let y = this.mMixBuf[i];
+            y = y < -32767 ? -32767 : (y > 32767 ? 32767 : y);
+            wave[idx++] = y & 255;
+            wave[idx++] = (y >> 8) & 255;
+        }
+        return wave;
+    }
+    getData(t:any, n:any) {
+        const i = 2 * Math.floor(t * 44100);
+        const d = new Array(n);
+        for (let j = 0; j < 2 * n; j += 1) {
+            const k = i + j;
+            d[j] = t > 0 && k < this.mMixBuf.length ? this.mMixBuf[k] / 32768 : 0;
+        }
+        return d;
+    }
+}
+class SoundSystem{
+    audioContext : AudioContext;
+    audioContextSingleFire : AudioContext;
+    buffer1 : AudioBuffer;
+    buffer2 : AudioBuffer;
+    bgmTime : number;
+    pausedTime : number;
+    startTime : number;
+    bgmsource : any;
+    bgmBuffer : any;
+
+
+    constructor(autostart = true){
+        this.audioContext = new window.AudioContext();
+        this.audioContextSingleFire = new window.AudioContext();
+        this.buffer1 = this.generateShootingSound();
+        this.buffer2 = this.generateExplosion();
+        var cplayer = new CPlayer();
+        this.bgmTime = 0;
+        this.pausedTime = 0;
+        this.startTime = 0;
+        cplayer.initGenBuffer(songBgm, this.audioContext,(buffer : AudioBuffer)=>{
+            this.bgmBuffer = buffer;
+            if(autostart) this.startBgm();
+        });
+    }
+    generateShootingSound() {
+        const sampleRate = this.audioContext.sampleRate;
+        const duration = 0.3; 
+        const buffer = this.audioContext.createBuffer(1, sampleRate * duration, sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+            data[i] = (Math.random() - 0.5) * 2;
+        }
+        const attackTime = 0.01; 
+        const decayTime = 0.1;  
+        const sustainLevel = 0.2; 
+        const releaseTime = duration - attackTime - decayTime; 
+        for (let i = 0; i < data.length; i++) {
+            let time = i / sampleRate;
+            if (time < attackTime) {
+                data[i] *= time / attackTime; 
+            } else if (time < attackTime + decayTime) {
+                data[i] *= 1 - (time - attackTime) / decayTime * (1 - sustainLevel); 
+            } else if (time > duration - releaseTime) {
+                data[i] *= (duration - time) / releaseTime; 
+            }
+        }
+        for (let i = 0; i < data.length; i++) {
+            let time = i / sampleRate;
+            
+            data[i] *= Math.sin(2 * Math.PI * time * (440 + Math.random() * 100)); 
+        }
+        return buffer;
+    }
+    generateSound() {
+        const sampleRate = this.audioContext.sampleRate;
+        const duration = 0.01; 
+        const frequency = 10; 
+        const buffer = this.audioContext.createBuffer(1, sampleRate * duration, sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+          data[i] = Math.sin(2 * Math.PI * frequency * i / sampleRate);
+        }
+        return buffer;
+    }
+    generateExplosion() {
+        const sampleRate = this.audioContext.sampleRate;
+        const duration = 0.5; 
+        const buffer = this.audioContext.createBuffer(1, sampleRate * duration, sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+            data[i] = Math.random() * 2 - 1; 
+        }
+        const attackTime = 0.05; 
+        const decayTime = 0.2; 
+        const sustainLevel = 0.0; 
+        const releaseTime = duration - attackTime - decayTime; 
+        for (let i = 0; i < data.length; i++) {
+            let time = i / sampleRate;
+            if (time < attackTime) {
+                data[i] *= time / attackTime; 
+            } else if (time < attackTime + decayTime) {
+                data[i] *= 1 - (time - attackTime) / decayTime * (1 - sustainLevel); 
+            } else if (time > duration - releaseTime) {
+                data[i] *= (duration - time) / releaseTime; 
+            }
+        }
+        return buffer;
+    }
+    playS1(){
+        const source = this.audioContextSingleFire.createBufferSource();
+        source.buffer = this.buffer1;
+        source.connect(this.audioContextSingleFire.destination);
+        source.start();
+    }
+    playS2(){
+        const source = this.audioContextSingleFire.createBufferSource();
+        source.buffer = this.buffer2;
+        source.connect(this.audioContextSingleFire.destination);
+        source.start();
+    }
+    startBgm(){
+        if(this.bgmsource){
+            this.bgmsource.stop();
+            this.bgmsource = null;
+        }
+        if(this.bgmBuffer){
+            this.bgmsource = this.audioContext.createBufferSource();
+            this.bgmsource.buffer = this.bgmBuffer;
+            this.bgmsource.connect(this.audioContext.destination);
+            this.bgmsource.loop = true;
+            this.bgmsource.start(0, this.pausedTime);
+            this.startTime = this.audioContext.currentTime - this.pausedTime;
+        }
+    }
+    stopBgm(){
+        if(this.bgmsource){
+            this.pausedTime = this.audioContext.currentTime - this.startTime;
+            this.bgmsource.stop();
+            this.bgmsource = null;
+        }
+    }
+}
+class GameEnginge{
+    config: any;
+    windowaspect:number;
+    CELLSIZE : number;
+    GameDimR : number;
+    GameDimC : number;
+    helpdom: HTMLElement;
+    body: HTMLElement;
+    layout: HTMLElement;
+    header: HTMLElement;
+    footer: HTMLElement;
+    constructor(){
+        this.config = {
+            music : false,
+            sound : false,
+            controls:false
+        };
+        this.body = G.makeDom('');;
+        this.layout = G.makeDom('');;
+        this.header = G.makeDom('');;
+        this.footer = G.makeDom('');;
+        this.resetBody();
+        this.preLoading();
+        this.windowaspect = window.innerHeight/window.innerWidth;
+        if(this.windowaspect > 1){
+            this.CELLSIZE = 32;
+        }
+        else{
+            this.CELLSIZE = 64;
+        }
+        this.GameDimR = Math.floor(window.innerHeight/this.CELLSIZE) - 2.5;
+        this.GameDimC = Math.floor(window.innerWidth/this.CELLSIZE)- 1;
+        this.helpdom = document.createElement('div');
+    }
+    preLoading(){
+        var about = G.makeDom(`<div>Loading....</div>`);
+        this.body.append(about);
+    }
+    resetBody(){
+        var div_w_class = `<div class='_class_'></div>`;
+        this.body = G.makeDom(div_w_class.replace('_class_','body'));
+        this.layout = G.makeDom(div_w_class.replace('_class_','layout'));
+        this.header = G.makeDom(div_w_class.replace('_class_','header'));
+        this.footer = G.makeDom(div_w_class.replace('_class_','footer'));
+        this.layout.appendChild(this.header);
+        this.layout.appendChild(this.body);
+        this.layout.appendChild(this.footer);
+        document.body.innerHTML = ``;
+        document.body.appendChild(this.layout);
+    }
+}
+class Player{
+    game : Game;
+    cat : Cat;
+    catIdleAnimation : Array<GameCanvasElement>;
+    catWalkAnimation : Array<GameCanvasElement>;
+    animation : any;
+    center : Point = {} as Point;
+    pos : Point = {} as Point;
+    sprite:GameCanvasElement = G.EmptyCanv();
+    moving : boolean = false;
+    destination : Point = {} as Point;
+    time:any;
+
+    constructor(game : Game){
+        this.game = game;
+        if(game.loaded){
+            this.cat = new Cat(game);
+            this.catIdleAnimation = this.cat.IdleAnimation();
+            this.catWalkAnimation = this.cat.WalkingAnimation();
+            this.animation = {
+                framerate : 8,
+                frame : 0,
+                spriteindex : 0,
+                spritesheet : this.catIdleAnimation
+            }
+            this.center = new Point({x:22*64-32,y:22*64-32} as Point);
+            this.pos = G.Point(this.center);
+            this.sprite = this.catIdleAnimation[0];
+            this.moving = false;
+            this.destination = G.Point(this.center);
+        }
+        else{
+            this.cat = {} as Cat;
+            this.catIdleAnimation = [];
+            this.catWalkAnimation = [];
+            this.animation = {};
+
+        }
+    }
+    update(t : number){
+        // this.animation.spritesheet = this.moving ? this.catWalkAnimation : this.catIdleAnimation;
+        this.animation.frame++;
+        if(this.animation.frame >= this.animation.framerate){
+            if(this.animation.spriteindex >= this.animation.spritesheet.length) this.animation.spriteindex = 0;
+            this.sprite = this.animation.spritesheet[this.animation.spriteindex];
+            this.animation.spriteindex++;
+            this.animation.frame = 0;
+        }
+
+        if(this.destination.distance(this.center) > 8){
+            this.center.moveToward(this.destination,8);
+        }
+        else{
+            this.center = G.Point(this.destination);
+            this.moving = false;
+        }
+        this.time = t;
+    }
+    draw(ctx : CanvasRenderingContext2D){
+        ctx.drawImage(this.sprite,
+            this.center.x - this.sprite.w/2,
+            this.center.y - this.sprite.h/2
+        );
+    }
+    getCameraStartXY(){
+        var startX = Math.max(0,this.center.x - this.game.canvasDim.w / 2);
+        var startY = Math.max(0,this.center.y - this.game.canvasDim.h / 2);
+        return {x:startX,y:startY};
+    }
+    getTouchPosOnMap(pos : Point){
+        var startXY = this.getCameraStartXY();
+        return {
+            x : startXY.x + pos.x,
+            y : startXY.y + pos.y,
+        };
+    }
+    handleTouchPos(pos : Point){
+        var cameraXY = this.getCameraStartXY();
+        var relativeXY = {
+            x : G.NormGrid(cameraXY.x + pos.x,CELLSIZE),
+            y : G.NormGrid(cameraXY.y + pos.y,CELLSIZE),
+        } as Point;
+        if(this.moving == false){
+            this.destination = G.Point(relativeXY);
+            this.moving = true;
+        }
+    }
+}
+class Game extends GameEnginge{
+    canvasDim : Rect;
+    spriteEngine : SpriteEngine = new SpriteEngine(null);
+    objects : Array<any> = [];
+    gameover : boolean = false;
+    gamePased : boolean = false;
+    healthdom : HTMLElement = G.makeDom('');
+    pointsdom : HTMLElement = G.makeDom('');
+    leveldom : HTMLElement = G.makeDom('');
+    timedom : HTMLElement = G.makeDom('');
+    dialog : HTMLElement = G.makeDom('');;
+    canvas: GameCanvasElement = G.makeCanvas(0,0);
+    time: number = 0;
+    mousePos : Point | null = null ;
+    touchPos : Point | null = null ;
+    gamemap : GameMap = new GameMap(this);
+    player : Player = new Player(this);
+    events : any;
+    SoundSystem : SoundSystem | null = null;
+    container : HTMLElement | null;
+    loaded : boolean=false;
+    constructor(container : string){
+        super();
+        this.container = document.getElementById(container);
+        this.canvasDim = {w :GameDimC*CELLSIZE,h :GameDimR*CELLSIZE};
+        G.loadImage('blackcat.gif?'+Math.random(),(img : typeof Image)=>{
+            this.spriteEngine = new SpriteEngine(img);
+            this.objects = [];
+            this.loaded = true;
+            this.mainScene();
+        })
+        return;
+    }
+    prepheader(){
+        var headerTable = G.GenTable(2,6);
+        headerTable.style.width = this.canvasDim.w + "px";
+        var entities = headerTable.entities;
+        
+        this.healthdom = document.createElement('div');
+        this.pointsdom = document.createElement('div');
+        this.leveldom = document.createElement('div');
+        this.timedom = document.createElement('div');
+
+        // entities[0][0].append(G.getEmojiSprite('💓',32,1.4));
+        // entities[1][0].append(this.healthdom);
+
+        // entities[0][1].append(G.getEmojiSprite('⓭',32,1.4));
+        // entities[1][1].append(this.pointsdom);
+
+        // entities[0][2].append(G.getEmojiSprite('⌛',32,1.4));
+        // entities[1][2].append(this.timedom);
+
+        // entities[0][4].append(`Level`);
+        // entities[1][4].append(this.leveldom);
+        
+        entities[0][5].rowSpan = 2;
+        entities[0][5].append(G.getEmojiSprite('📋',40,1.4));
+
+        entities[1][5].remove();
+        entities[0][5].onclick = ()=>{this.showMenu();}
+
+        this.header.append(headerTable);
+    }
+    mainScene(){
+        this.gameover = true;
+        this.gamePased = true;
+        this.resetBody();
+        var canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
+        canvas.fill('#000');
+        this.getMainMenuBg(canvas);
+        this.body.append(canvas);
+        this.showMenu();
+    }
+    showMenu(){
+        this.gamePased = true;
+        if(this.dialog != null){this.dialog.remove();}
+        this.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
+        var navItems = [] as NavItem[];
+        if(this.gameover){
+            navItems.push({html : '<button >New Game</button>', f:'newgame'});
+        }
+        else{
+            navItems.push({html : '<button >Resume</button>', f:'resume'});
+        }
+        navItems.push(...[
+            {html : `<button >Music ${this.config.music ? 'ON': 'OFF'}</button>`,   f:'music'},
+        ]);
+        if(!this.gameover){
+            navItems.push({html : '<button >Quit</button>',   f:'quit'},);
+        }
+        var nav = G.GenTable(navItems.length,1);
+        for(let i in navItems){
+            var dom = G.makeDom(navItems[i].html)
+            dom.style.width = `${this.canvasDim.w * 0.9}px`;
+            dom.style.fontSize = `24pt`;
+
+            nav.entities[i][0].append(dom);
+            nav.entities[i][0].onclick = ()=>{
+                this.ApplyMenuItem(navItems[i].f);
+            }
+        }
+        this.dialog.append(nav);
+        this.body.append(this.dialog);
+    }
+    newGame(){
+        this.resetBody();
+        this.prepheader();
+        this.body.innerHTML = '';
+        this.gamemap = new GameMap(this);
+        this.canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
+        this.body.innerHTML = '';
+        this.body.appendChild(this.canvas);
+        this.body.appendChild(this.helpdom);
+        this.player = new Player(this);
+
+        this.objects = [
+            this.player
+        ]
+        this.body.innerHTML = '';
+        this.body.appendChild(this.canvas);
+        this.body.appendChild(this.helpdom);
+        this.update(0);
+        this.events = {
+            touchstart : false
+        }
+        window.addEventListener('keyup',(e)=>{
+            if(e.key=='Escape'){
+                this.showMenu();
+            }
+        })
+        this.touchPos = null;
+        this.canvas.addEventListener('mousedown', (e) => handleStart(e));
+        this.canvas.addEventListener('mouseup', () => handleEnd());
+        this.canvas.addEventListener('mousemove', (e) => handleMove(e));
+        // Touch events
+        this.canvas.addEventListener('touchstart', (e) => handleStart(e));
+        this.canvas.addEventListener('touchend', () => handleEnd());
+        this.canvas.addEventListener('touchmove', (e) => handleMove(e));
+
+        var handleEnd =()=>{this.touchPos = null;}
+        var handleStart = (e: any)=>{
+            this.touchPos = getTp(e.touches ? e.touches[0] : e);
+        }
+        var handleMove = (e: any)=>{
+            if (this.touchPos) {
+                this.touchPos = getTp(e.touches ? e.touches[0] : e);
+            }
+        }
+        var getTp = (e : any) : Point=>{
+            var rect = this.canvas.getBoundingClientRect();
+            var x = e.clientX - rect.left + window.scrollX;
+            var y = e.clientY - rect.top + window.scrollY;
+            return { x: x, y: y } as Point;
+        }
+        return;
+    }
+    handleClick(e : PointerEvent){
+        if(this.dialog != null){this.dialog.remove();}
+        var rect = this.canvas.getBoundingClientRect();
+        var x = e.clientX - rect.left + window.scrollX;
+        var y = e.clientY - rect.top + window.scrollY;
+        x = Math.floor(x/CELLSIZE) * CELLSIZE + CELLSIZE / 2;
+        y = Math.floor(y/CELLSIZE) * CELLSIZE + CELLSIZE / 2;
+        this.mousePos = {x:x-CELLSIZE/2,y:y-CELLSIZE/2} as Point;
+        return;
+    }
+    gameOverScene(){
+        this.gamePased = true;
+        this.gameover = true;
+        if(this.dialog != null){this.dialog.remove();}
+        this.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
+        this.dialog.style.width = `${this.canvasDim.w}px`;
+        this.dialog.style.height = `${this.canvasDim.h * 0.8}px`;
+        this.dialog.innerHTML = `<h1>Game Over</h1>`;
+        var button = G.makeDom(`<button id="nextLevel"><h2>New Game</h2></button>`);
+        button.style.width = `${this.canvasDim.w * 0.90}px`;
+        button.onclick = ()=>{
+            this.newGame();
+        }
+        this.dialog.append(button);
+        this.body.append(this.dialog);
+    }
+    ApplyMenuItem(item : string){
+        if(item == 'newgame'){
+            this.gamePased = false;
+            this.gameover = false;
+            this.newGame();
+        }
+        else if(item == 'resume'){
+            this.gamePased = false;
+            this.dialog.remove();
+            this.update(this.time);
+        }
+        else if(item == 'controls'){
+            this.config.controls = !this.config.controls;
+            this.showMenu();
+            this.update(this.time);
+        }
+        else if(item == 'music'){
+            if(!this.SoundSystem){
+                this.SoundSystem = new SoundSystem();
+            }
+            var currentval = this.config.music;
+            if(currentval){
+                this.SoundSystem.stopBgm();
+            }
+            else{
+                this.SoundSystem.startBgm();
+            }
+            this.config.music = !this.config.music;
+            this.dialog.remove();
+            this.showMenu();
+        }
+        else if(item == 'quit'){
+            if(document.fullscreenEnabled) document.exitFullscreen();
+            this.gamePased = true;
+            this.gameover = true;
+            this.dialog.remove();
+            this.mainScene();
+        }
+        else if(item == `help`){
+            this.gamePased = true;
+            if(this.dialog != null){this.dialog.remove();}
+            this.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
+            this.dialog.style.width = `${this.canvasDim.w}px`;
+            var h2 = `
+                <div class="helpDiv">
+                    <h2>Help</h2>
+                </div>
+            `;
+            var mdom = G.makeDom('<button>Menu</button>');
+            mdom.onclick = ()=>{
+                this.gamePased = false;
+                this.dialog.remove();
+                this.showMenu();
+                // this.update(this.time);
+            }
+            this.dialog.innerHTML += h2;
+            this.dialog.append(mdom);
+            this.body.append(this.dialog);
+        }
+    }
+    parseNum(v:number){
+        if(v >= 10000000000) return `${(v/10000000000).toFixed(1)}T`;
+        if(v >= 100000000) return `${(v/100000000).toFixed(1)}B`;
+        if(v >= 1000000) return `${(v/1000000).toFixed(1)}M`;
+        if(v >= 1000) return `${(v/1000).toFixed(1)}k`;
+        return `${v}`;
+    }
+    updateBuffer(){
+        var basemaplayout = this.gamemap && this.gamemap.map;
+        var ctx = basemaplayout && basemaplayout.ctx;
+        if(this.player && ctx){
+            this.player.draw(ctx);
+            var startXY = this.player.getCameraStartXY();
+            var cropmap = G.crop(basemaplayout,
+                startXY.x,
+                startXY.y,
+                this.canvasDim.w,
+                this.canvasDim.h
+            );
+            return cropmap;
+        }
+        else return G.makeCanvas(0,0);
+    }
+    update(t:number){
+        if(this.gamePased == true){return;}
+        if(this.gameover == true) return this.gameOverScene();
+        this.objects.forEach(x=> x.update(t));
+
+        var basemaplayout = this.gamemap.getMap();
+        var bufferctx = basemaplayout.ctx;
+        //draw player and objects on map
+        this.objects.sort((a, b) => {return a.pos ? a.pos?.y : Infinity - b.pos ? b.pos?.y : Infinity;});
+        this.objects.forEach(x=> x.draw(bufferctx));
+        
+
+        var startX = Math.max(0,this.player.center.x - this.canvasDim.w / 2);
+        var startY = Math.max(0,this.player.center.y - this.canvasDim.h / 2);
+        
+        
+        var crop = G.crop(basemaplayout,
+            startX,
+            startY,
+            this.canvasDim.w,
+            this.canvasDim.h
+        );
+
+
+        this.canvas.clear();
+        this.canvas.ctx.drawImage(crop,0,0);
+        this.timedom.innerHTML = `${this.parseTime(t/1000)}`;
+        if(this.touchPos){
+            this.player.handleTouchPos(this.touchPos);
+            this.touchPos = null;
+        }
+        this.time = t;
+        requestAnimationFrame(newtime=>this.update(newtime));
+    }
+    parseTime(s:number){
+        let m = Math.floor(s / 60);
+        let h = Math.floor(m / 60);
+        m = Math.floor(m % 60);
+        s = Math.floor(s % 60);
+        return `${h<10?0:''}${h}:${m<10?0:''}${m}:${s<10?0:''}${s}`;
+    }
+    getThumbnail(){
+        var canvas = G.makeCanvas(320,320);
+        var space = G.randomPattern('#000','#fff',0.001,500,500);
+        var gamename = G.getTextSprite(`FAMILIAR`,   16, `#fff`, 1.5, 'cursive');
+        canvas.fillPatern(space);
+        canvas.ctx.drawImage(gamename,canvas.w/2-gamename.w/2,canvas.h-gamename.h*2);
+        return canvas;
+    }
+    getCover(){
+        var canvas = G.makeCanvas(800,500);
+        var space = G.randomPattern('#000','#fff',0.001,500,500);
+        var gamename = G.getTextSprite(`FAMILIAR`,   32, `#fff`, 1.5, 'cursive');
+        canvas.fillPatern(space);
+        canvas.ctx.drawImage(gamename,0,canvas.h-gamename.h*2);
+        return canvas;
+    }
+    getMainMenuBg(canvas : GameCanvasElement){
+        var scene = new MainLoadingScene(this);
+        scene.draw(canvas);
+        function update(t:number){
+            scene.update(t);
+            scene.draw(canvas);
+            requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    }
+}
+class GameMap{
+    game : Game;
+    cw : number = 0;
+    ch: number = 0;
+    map : GameCanvasElement = G.makeCanvas();
+    w : number = 0;
+    h : number = 0;
+    collisionMat : number[][] = [];
+
+    constructor(game : Game){
+        this.game = game;
+        if(game.loaded){
+            this.ch = this.game.canvasDim.h;
+            this.cw = this.game.canvasDim.w;
+            this.map = this.RenderMap(game.spriteEngine.mapBlueprint);
+        }
+    }
+    getMap(){
+        return G.imgToCanvas(this.map);
+    }
+    cropMap(sx : number,sy: number,w: number,h: number){ 
+        return G.crop(this.map,
+            sx,
+            sy,
+            w,
+            h
+        );
+
+    }
+    draw(ctx : CanvasRenderingContext2D,px : number,py : number){
+        let buffer = this.map;
+        let sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight;
+        sx=sy=sWidth=sHeight=dx=dy=dWidth=dHeight = 0;
+        let edge = {
+            x : px - (this.cw / 2),
+            y : py - (this.ch / 2),
+        }
+        sx = edge.x;
+        sy = edge.y;
+        if(sx <= 0) {
+            sx = 0;
+            px = sx + this.cw / 2;
+        }
+        if(sy <= 0) {
+            sy = 0;
+            py = sy + this.ch/2;
+        }
+        if(sx + this.w > buffer.width){
+            sx = buffer.width - this.cw;
+            px = sx + this.cw / 2;
+        }
+        if(sy + this.h > buffer.height){
+            sy = buffer.height - this.ch;
+            py = sy + this.ch/2;
+        }
+        dx = 0;
+        dy = 0;
+        sWidth  = dWidth = this.w;
+        sHeight = dHeight = this.h;
+        ctx.drawImage(buffer, 
+            sx, 
+            sy, 
+            sWidth, 
+            sHeight, 
+            dx, 
+            dy, 
+            dWidth, 
+            dHeight);
+    }
+    GenWaterTile(){
+        const canvas = G.makeCanvas(64, 64);
+        const ctx = canvas.ctx;
+        ctx.fillStyle = "#639bff";
+        ctx.fillRect(0, 0, 64, 64);
+        for (let i = 0; i < 120; i++) {
+            const x = G.randInt(0, 64);
+            const y = G.randInt(0, 64);
+            const r = G.randInt(2, 6);
+            ctx.globalAlpha = G.rand(0.15, 0.35);
+            ctx.fillStyle = "#a3d8ff";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    GenDirtTile() {
+        const canvas = G.makeCanvas(64, 64);
+        const ctx = canvas.ctx;
+        ctx.fillStyle = "#a67c52";
+        ctx.fillRect(0, 0, 64, 64);
+        for (let i = 0; i < 80; i++) {
+            const x = G.randInt(0, 64);
+            const y = G.randInt(0, 64);
+            const r = G.randInt(2, 5);
+            ctx.globalAlpha = G.rand(0.15, 0.35);
+            ctx.fillStyle = G.rand() > 0.5 ? "#c2b280" : "#7c5c36";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    GenGrassTile() {
+        const canvas = G.makeCanvas(64, 64);
+        const ctx = canvas.ctx;
+        // Base grass color
+        ctx.fillStyle = "#4caf50";
+        ctx.fillRect(0, 0, 64, 64);
+        // Add random spots for texture
+        for (let i = 0; i < 90; i++) {
+            const x = G.randInt(0, 64);
+            const y = G.randInt(0, 64);
+            const r = G.randInt(2, 5);
+            ctx.globalAlpha = G.rand(0.18, 0.38);
+            ctx.fillStyle = G.rand() > 0.5 ? "#81c784" : "#388e3c";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    GenWalkwayTile() {
+        const canvas = G.makeCanvas(64, 64);
+        const ctx = canvas.ctx;
+        // Base walkway color
+        ctx.fillStyle = "#b0a99f";
+        ctx.fillRect(0, 0, 64, 64);
+        const brickW = 16, brickH = 16;
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 4; col++) {
+                // Offset every other row for a brick pattern
+                let x = col * brickW + (row % 2 === 1 ? brickW / 2 : 0);
+                if (x + brickW > 64) continue; // Avoid overflow
+                let y = row * brickH;
+                ctx.fillStyle = G.rand() > 0.5 ? "#d6d2c4" : "#a59e91";
+                ctx.fillRect(x, y, brickW - 2, brickH - 2);
+                ctx.strokeStyle = "#8d867a";
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, y, brickW - 2, brickH - 2);
+            }
+        }
+        ctx.globalAlpha = 1;
+        return canvas;
+    }
+    GenFlowerGarden(){
+        var sprites = [
+            G.getEmojiSprite("🌹", 12,1.3),
+            G.getEmojiSprite("🌷", 12,1.3),
+            G.getEmojiSprite("🌻", 12,1.3),
+            G.getEmojiSprite("🌼",12,1.3),
+            G.getEmojiSprite("🌱",12,1.3),
+        ];
+        const canvas = G.makeCanvas(64, 64);
+        var ctx = canvas.ctx;
+        var grass = this.GenGrassTile();
+        ctx.fillStyle = "#4caf50";
+        ctx.drawImage(grass,0,0);
+        for (let i = 0; i < 8; i++) {
+            const x = G.randInt(0, 64-12);
+            const y = G.randInt(0, 64-12);
+            var randSprite = sprites[G.randInt(0,sprites.length)];
+            ctx.drawImage(randSprite,x,y);
+        }
+        return canvas;
+    }
+    RenderMap(blueprint: GameCanvasElement){
+        this.collisionMat = [];
+        var grass = this.GenGrassTile();
+        var dirt = this.GenDirtTile();
+        var walkway = this.GenWalkwayTile();
+        var water = this.GenWaterTile();
+        var tree1 = G.getEmojiSprite(`🌳`,64,1.3);
+        var house1 = G.getEmojiSprite(`🏡`,64*2,1.3);
+        var house2 = G.getEmojiSprite(`🏠`,64*2,1.3);
+        var church = G.getEmojiSprite(`⛪`,64*3,1.3);
+        var townhall = G.getEmojiSprite(`🏫`,64*3,1.3);
+        var castle = G.getEmojiSprite(`🏰`,64*4,1.3);
+        var store = G.getEmojiSprite(`🏪`,64*3,1.3);
+        var stoneBrickWall = G.brickPattern('#afafaf','#6d6c6c',4);
+        var mat = G.getColorMatrix(blueprint,(r:any)=>{
+            if(r == '') return null;
+            return r;
+        });
+        var set = new Set();
+        mat.flat().map(x=> set.add(x));
+        var buffer = G.makeCanvas(64*64,64*64);
+        var ctx = buffer.ctx;
+        for(let i = 0 ; i < 64; i++){
+            this.collisionMat[i] = [];
+            for(let j = 0 ; j < 64 ;j++){
+                this.collisionMat[i][j] = 0;
+                var col = mat[j][i];
+                if(col == '#99e550'){
+                    ctx.drawImage(grass,i*64,j*64);
+                }
+                else if(col == "#639bff"){
+                    ctx.drawImage(water,i*64,j*64);
+                }
+                else if(col == "#6abe30"){
+                    ctx.drawImage(grass,i*64,j*64);
+                    ctx.drawImage(tree1,i*64,j*64);
+                }
+                else if(col == "#76428a"){
+                    ctx.drawImage(grass,i*64,j*64,128,128);
+                    ctx.drawImage(house1,i*64,j*64);
+                }
+                else if(col == "#d77bba"){
+                    ctx.drawImage(grass,i*64,j*64,128,128);
+                    ctx.drawImage(house2,i*64,j*64);
+                }
+                else if(col == "#d9a066"){
+                    ctx.drawImage(dirt,i*64,j*64,64,64);
+                }
+                else if(col == "#767676"){
+                    ctx.drawImage(stoneBrickWall,i*64,j*64,64,64);
+                }
+                else if(col == "#df7126"){
+                    ctx.drawImage(grass,i*64,j*64,64*4,64*4);
+                    ctx.drawImage(castle,i*64,j*64,64*4,64*4);
+                }
+                else if(col == "#8f974a"){
+                    ctx.drawImage(grass,i*64,j*64,64*3,64*3);
+                    ctx.drawImage(church,i*64,j*64,64*3,64*3);
+                }
+                else if(col == "#fbf236"){
+                    ctx.drawImage(grass,i*64,j*64,64*3,64*3);
+                    ctx.drawImage(townhall,i*64,j*64,64*3,64*3);
+                }
+                else if(col == "#ac3232"){
+                    ctx.drawImage(grass,i*64,j*64,64*3,64*3);
+                    ctx.drawImage(store,i*64,j*64,64*3,64*3);
+                }
+                else if(col == "#663931"){
+                    ctx.drawImage(walkway,i*64,j*64,64,64);
+                }
+                else if(col == "#4b692f"){
+                    ctx.drawImage(this.GenFlowerGarden(),i*64,j*64,64,64);
+                }
+                else if(col = '#000000'){}
+                else{
+                    ctx.drawImage(dirt,i*64,j*64);
+                }
+            }
+        }
+        return buffer;
+    }
+}
+class MainLoadingScene{
+    cat : Cat;
+    catIdle : any;
+    catIdleAnimation : any;
+    catWalkAnimation : any;
+    catWalkAnimationShadow : any;
+    canvas : any;
+    catWalkingInX : any;
+    credit : any;
+    space : any;
+    LogoY : any;
+    CatWalkingAnimationObj : any;
+    phase:any;
+    familiarSprite:any;
+    time:any;
+
+    constructor(game:Game){
+        this.cat = new Cat(game);
+        this.catIdle = this.cat.Idle();
+        this.catIdleAnimation = this.cat.IdleAnimation();
+        this.catWalkAnimation = this.cat.WalkingAnimation();
+        this.catWalkAnimationShadow = this.catWalkAnimation.map((x:any) => G.GenShadow(x,2,'#fff'));
+        this.canvas = G.makeCanvas(game.canvasDim.w,game.canvasDim.h);
+        this.catWalkingInX = 0;
+        this.credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
+        this.space = G.randomPattern('#aaa','#fff',0.001,this.canvas.w*3,this.canvas.h);
+        this.LogoY = this.canvas.h/2 + 64;
+        this.CatWalkingAnimationObj = {
+            sprites : this.catWalkAnimation,
+            shadows : this.catWalkAnimationShadow,
+            current : 0,
+            frames : 0,
+            framerate : 16,
+            locX :64,
+            locY : this.LogoY,
+        }
+        this.GenFamiliarSprite();
+        this.phase = 1;
+    }
+    draw(canvas:GameCanvasElement){
+        canvas.ctx.drawImage(this.canvas,0,0);
+    }
+    GenFamiliarSprite(){
+        var FamilarSpriteWhite = G.getTextSprite(`FAMILIAR`,   64, `#fff`, 1.5, 'cursive');
+        var FamilarSpriteRed = G.getTextSprite(`FAMILIAR`,   64, `#b90000`, 1.5, 'cursive');
+        var canvas = G.makeCanvas(FamilarSpriteRed.w + 4, FamilarSpriteRed.h + 4);
+        canvas.ctx.drawImage(FamilarSpriteRed,1,1);
+        canvas.ctx.drawImage(FamilarSpriteWhite,0,0);
+        this.familiarSprite = {
+            sprite : canvas,
+            locX :128,
+            locY : this.LogoY,
+            currentShowing : 0
+        };
+    }
+    update(t:number){
+        var randSpaceX = G.randInt(0,this.space.w-this.canvas.w);
+        this.canvas.ctx.drawImage(this.space,
+            0,0,
+            randSpaceX,
+            this.canvas.h,
+            0,
+            0,
+            this.canvas.w,
+            this.canvas.h,
+        );
+        this.canvas.ctx.drawImage(this.credit, 0,  this.canvas.h - this.credit.h);
+        this.canvas.ctx.drawImage(this.CatWalkingAnimationObj.shadows[this.CatWalkingAnimationObj.current],
+            this.CatWalkingAnimationObj.locX-1,
+            this.CatWalkingAnimationObj.locY-1
+        );
+        this.canvas.ctx.drawImage(this.CatWalkingAnimationObj.sprites[this.CatWalkingAnimationObj.current],
+            this.CatWalkingAnimationObj.locX,
+            this.CatWalkingAnimationObj.locY
+        );
+        this.CatWalkingAnimationObj.frames++;
+        if(this.CatWalkingAnimationObj.frames > this.CatWalkingAnimationObj.framerate){
+            this.CatWalkingAnimationObj.frames = 0;
+            this.CatWalkingAnimationObj.current++;
+            if(this.CatWalkingAnimationObj.current >= this.CatWalkingAnimationObj.sprites.length){
+                this.CatWalkingAnimationObj.current = 0;
+            }
+        }
+        this.canvas.ctx.drawImage(this.familiarSprite.sprite, 
+            0,0,
+            this.familiarSprite.currentShowing,
+            this.familiarSprite.sprite.h,
+            this.familiarSprite.locX,
+            this.familiarSprite.locY,
+            this.familiarSprite.currentShowing,
+            this.familiarSprite.sprite.h,
+        );
+        this.familiarSprite.currentShowing += 4;
+        if(this.familiarSprite.currentShowing > this.familiarSprite.sprite.w){
+            this.familiarSprite.currentShowing = 0;
+        }
+        this.time = t;
+    }
+}
+declare global {
+  interface Window {
+    game: Game;
+  }
+}
+export default Game;
