@@ -242,7 +242,7 @@ class MapBase{
     game : Game;
     blueprintasmatrix : any[][];
     colordict : any[];
-    map : GameCanvasElement | null = null;
+    map : GameCanvasElement = G.EmptyCanv();
     pathfindermatrix : any;
     pathFinder : Pathfinder = new Pathfinder([]);
     collisionMat : any[][] = [];
@@ -2204,7 +2204,7 @@ class Intro{
         var buttonOK = G.GenBorder(textOk.w + CELLSIZE,textOk.h + CELLSIZE,s1,'#e7e570');
         buttonOK.ctx.drawImage(textOk,CELLSIZE/2,CELLSIZE/2);
         this.menuclickables.push(
-            new Clickable(CELLSIZE*1.5,cy,buttonOK.w,buttonOK.h,buttonOK,(e)=>{
+            new Clickable(CELLSIZE*1.5,cy,buttonOK.w,buttonOK.h,buttonOK,()=>{
                 game.body.innerHTML = '';
                 game.body.append(game.canvas);
                 game.gamePased = false;
@@ -2246,6 +2246,19 @@ class Game extends GameEnginge{
     gamePased : boolean = false;
     dialog : HTMLElement = G.makeDom('');
     time : number = 0;
+    healthdom : HTMLElement = G.makeDom('');
+    pointsdom : HTMLElement = G.makeDom('');
+    leveldom : HTMLElement = G.makeDom('');
+    timedom : HTMLElement = G.makeDom('');
+    gameover : boolean = true;
+    player : Player = {} as Player
+    portals : Portal[] = [];
+    menuclickables : Clickable[] = [];
+    scene : any = null;
+    events:any = {};
+    touchPos:any = {};
+    SoundSystem : SoundSystem = new SoundSystem();
+    
     constructor(c : any){
         super(c);
         this.canvasDim = {w :600 , h :600};
@@ -2294,7 +2307,7 @@ class Game extends GameEnginge{
         this.gamePased = true;
         if(this.dialog != null){this.dialog.remove();}
         this.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
-        var navItems = [];
+        var navItems : NavItem[] = [];
         if(this.gameover){
             navItems.push({html : '<button >New Game</button>', f:'newgame'});
             navItems.push({html : '<button >Practice Combat</button>', f:'paracticecombat'});
@@ -2355,16 +2368,16 @@ class Game extends GameEnginge{
         this.canvas.addEventListener('touchend', () => handleEnd());
         this.canvas.addEventListener('touchmove', (e) => handleMove(e));
         var handleEnd =()=>{this.touchPos = null;}
-        var handleStart = (e)=>{
-            G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt)=>{
+        var handleStart = (e : any)=>{
+            G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt: any)=>{
                 var x = pt.x;
                 var y = pt.y;
                 this.touchPos = { x: x, y: y };
             });
         }
-        var handleMove = (e)=>{
+        var handleMove = (e: any)=>{
             if (this.touchPos) {
-                G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt)=>{
+                G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt: any)=>{
                     var x = pt.x;
                     var y = pt.y;
                     this.touchPos = { x: x, y: y };
@@ -2373,7 +2386,7 @@ class Game extends GameEnginge{
         }
         return;
     }
-    ApplyMenuItem(item){
+    ApplyMenuItem(item: any){
         if(item == 'newgame'){
             this.gamePased = false;
             this.gameover = false;
@@ -2400,7 +2413,7 @@ class Game extends GameEnginge{
             this.showMenu();
         }
         else if(item == 'quit'){
-            if(document.webkitIsFullScreen) document.exitFullscreen();
+            if(document.fullscreenEnabled) document.exitFullscreen();
             this.gamePased = true;
             this.gameover = true;
             this.dialog.remove();
@@ -2423,12 +2436,10 @@ class Game extends GameEnginge{
             mdom.onclick = ()=>{
                 this.gamePased = false;
                 this.dialog.remove();
-                this.showMenu(true);
+                this.showMenu();
                 // this.update(this.time);
             }
             this.dialog.innerHTML += h2;
-            var helpDiv = this.dialog.querySelector('.helpDiv');
-            helpDiv.style['overflow-y'] = `auto`;
             this.dialog.append(mdom);
             this.body.append(this.dialog);
         }
