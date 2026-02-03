@@ -96,7 +96,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
           String contentType = 'text/plain';
           final lower = path.toLowerCase();
-<<<<<<< HEAD
           if (lower.endsWith('.html') || lower.endsWith('.htm')) {contentType = 'text/html';}
           else if (lower.endsWith('.js') || lower.endsWith('.mjs')) {contentType = 'application/javascript';}
           else if (lower.endsWith('.css')) {contentType = 'text/css';}
@@ -104,15 +103,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           else if (lower.endsWith('.png')) {contentType = 'image/png';}
           else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {contentType = 'image/jpeg';}
           else if (lower.endsWith('.svg')) {contentType = 'image/svg+xml';}
-=======
-          if (lower.endsWith('.html') || lower.endsWith('.htm')) contentType = 'text/html';
-          else if (lower.endsWith('.js') || lower.endsWith('.mjs')) contentType = 'application/javascript';
-          else if (lower.endsWith('.css')) contentType = 'text/css';
-          else if (lower.endsWith('.json') || lower.endsWith('.map')) contentType = 'application/json';
-          else if (lower.endsWith('.png')) contentType = 'image/png';
-          else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) contentType = 'image/jpeg';
-          else if (lower.endsWith('.svg')) contentType = 'image/svg+xml';
->>>>>>> cb83304c78237135462280aa2d7969381c3a6d9f
 
           request.response
             ..headers.contentType = ContentType.parse(contentType)
