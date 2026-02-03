@@ -1,0 +1,159 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+// NOTE: `webview_flutter_android` may be added if you need Android-specific
+// implementations. The plain `webview_flutter` dependency is usually sufficient
+// and will pull the correct platform implementation. If you add
+// `webview_flutter_android`, update `pubspec.yaml` accordingly.
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Lock orientation (optional)
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+  runApp(const GameApp());
+}
+
+class GameApp extends StatelessWidget {
+  const GameApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: const GameScreen(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class GameScreen extends StatefulWidget {
+  const GameScreen({super.key});
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
+  WebViewController? _webViewController;
+  HttpServer? _server;
+  int _port = 8080;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Optional: you can enable Android-specific WebView implementation here
+    // if you add `webview_flutter_android` to `pubspec.yaml`.
+
+    _startServer();
+  }
+
+  @override
+  void dispose() {
+    _server?.close(force: true);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Future<void> _startServer() async {
+    try {
+      for (int port = 8080; port < 8100; port++) {
+        try {
+          _server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
+          _port = port;
+          break;
+        } catch (_) {
+          continue;
+        }
+      }
+
+      if (_server == null) return;
+
+      _server!.listen((HttpRequest request) async {
+        try {
+          String path = request.uri.path.substring(1);
+          if (path.isEmpty) path = 'index.html';
+          final assetPath = 'assets/web/$path';
+          ByteData data = await rootBundle.load(assetPath);
+          final bytes = data.buffer.asUint8List();
+
+          String contentType = 'text/plain';
+          final lower = path.toLowerCase();
+          if (lower.endsWith('.html') || lower.endsWith('.htm')) contentType = 'text/html';
+          else if (lower.endsWith('.js') || lower.endsWith('.mjs')) contentType = 'application/javascript';
+          else if (lower.endsWith('.css')) contentType = 'text/css';
+          else if (lower.endsWith('.json') || lower.endsWith('.map')) contentType = 'application/json';
+          else if (lower.endsWith('.png')) contentType = 'image/png';
+          else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) contentType = 'image/jpeg';
+          else if (lower.endsWith('.svg')) contentType = 'image/svg+xml';
+
+          request.response
+            ..headers.contentType = ContentType.parse(contentType)
+            ..headers.add('Access-Control-Allow-Origin', '*')
+            ..add(bytes)
+            ..close();
+        } catch (e) {
+          request.response
+            ..statusCode = HttpStatus.notFound
+            ..write('Not found')
+            ..close();
+        }
+      });
+
+      // Initialize WebView after server starts
+      _initializeWebView();
+    } catch (e) {
+      setState(() => isLoading = false);
+    }
+  }
+
+  void _initializeWebView() async {
+    // Create and configure a WebViewController (webview_flutter v4 API)
+    final uri = Uri.parse('http://127.0.0.1:$_port/index.html');
+    try {
+      _webViewController = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(const Color(0xFF000000))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageStarted: (url) => setState(() => isLoading = true),
+            onPageFinished: (url) => setState(() => isLoading = false),
+            onWebResourceError: (err) => debugPrint('WebView error: ${err.description}'),
+          ),
+        );
+
+      await _webViewController!.loadRequest(uri);
+      setState(() {});
+    } catch (e) {
+      debugPrint('Failed to initialize WebView controller: $e');
+      setState(() => isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Show progress indicator while server is starting
+    if (_server == null || isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // When server is ready, render the WebViewWidget using the controller.
+    return Scaffold(
+      body: _webViewController == null
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
+              children: [
+                WebViewWidget(controller: _webViewController!),
+                if (isLoading)
+                  const Center(child: CircularProgressIndicator()),
+              ],
+            ),
+    );
+  }
+}

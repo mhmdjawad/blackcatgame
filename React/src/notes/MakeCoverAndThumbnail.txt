@@ -1,0 +1,130 @@
+class MakeCoverAndThumbnail{
+    game : Game;
+    familiarSprite : GameCanvasElement;
+    witchsprite : GameCanvasElement;
+    credit : GameCanvasElement;
+    catIdle : GameCanvasElement;
+    catIdleShadow : GameCanvasElement;
+    catorbit : GameCanvasElement;
+    catorbit2 : GameCanvasElement;
+    elements : any[] = [];
+    circlepoints : any[] = [];
+    rotspeed : number = 0;
+
+    constructor(game: Game){
+        this.game = game;
+        this.familiarSprite = this.GenFamiliarSprite();
+        this.witchsprite = game.spriteEngine.red_witch;
+
+        this.credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
+        var cat = new Cat(game);
+        this.catIdle = cat.Idle();
+        this.catIdleShadow = G.GenShadow(this.catIdle,2,'#fff');
+        this.catorbit = this.GenCatOrbit();
+        this.catorbit2 = this.GenCatOrbit(600,600,200);
+        var thumbnail = this.getThumbnail();
+        var cover = this.getCover();
+        document.body.append(thumbnail);
+        document.body.append(cover);
+    }
+    GenCatOrbit(w = 300,h = 300,r = 112){
+        var w = w;
+        var h = h;
+        var canvas = G.makeCanvas(w,h);
+        var ctx = canvas.ctx;
+
+        this.elements = [
+            {s:G.getEmojiSprite('🔥',32,1.4),c:'#ee4000c7',i:0},
+            {s:G.getEmojiSprite('💧',32,1.4),c:'#00c7eec7',i:10},
+            {s:G.getEmojiSprite('🌱',32,1.4),c:'#805a05c7',i:20},
+            {s:G.getEmojiSprite('🌪️',32,1.4),c:'#cdcf84c7',i:30},
+            {s:G.getEmojiSprite('⚡',32,1.4),c:'#f9ff30c7',i:40},
+            {s:G.getEmojiSprite('🌑',32,1.4),c:'#a83bf3c7',i:50},
+            {s:G.getEmojiSprite('☀️',32,1.4),c:'#f8ff00c7',i:60},
+        ];
+
+
+        var circlesprite = G.MakeCircle(r,'#fff',null,3);
+        var centerY = h/2;
+        var centerX = w/2;
+        var circle = {x : centerX, y : centerY, r : circlesprite.w/2};
+        this.circlepoints = pointsOnCircle(circle.x,circle.y,circle.r,70);
+        ctx.drawImage(circlesprite, centerX - circlesprite.w/2, centerY- circlesprite.h/2);
+
+        this.elements.forEach(el=>{
+            var pos = this.circlepoints[el.i % this.circlepoints.length];
+           ctx.drawImage(el.s,
+                pos.x - el.s.w/2,
+                pos.y - el.s.h/2
+            );
+            var randotherelements = this.elements.filter(x=> x.c != el.c);
+            randotherelements.forEach(randotherelement=>{
+                    var otherpos = this.circlepoints[randotherelement.i % this.circlepoints.length];
+                   ctx.save();
+                   ctx.globalAlpha = 0.3;
+                   ctx.strokeStyle = el.c;
+                   ctx.lineWidth = 2;
+                   ctx.beginPath();
+                   ctx.moveTo(
+                        pos.x,
+                        pos.y
+                    );
+                   ctx.lineTo(
+                        otherpos.x,
+                        otherpos.y
+                    );
+                   ctx.stroke();
+                   ctx.globalAlpha = 1;
+                   ctx.restore();
+            });
+            //move to next
+            el.t--;if(el.t <= 0){el.t = this.rotspeed;el.i++;}
+        });
+        ctx.drawImage(this.catIdleShadow, w/2 -this. catIdleShadow.w/2, h/2 - this.catIdleShadow.h/2);
+        ctx.drawImage(this.catIdle, w/2 -this. catIdle.w/2, h/2 - this.catIdle.h/2);
+
+        return canvas;
+    }
+    GenFamiliarSprite(){
+        var letters = ['T','H','E',' ','F','A','M','I','L','I','A','R'];
+        var canvas = G.makeCanvas(64*letters.length,CELLSIZE+4);
+        var cx = 0;
+        for(let i in letters){
+            var sprite = G.getTextSprite(letters[i],CELLSIZE,'#fff',1.1,'cursive');
+            var sprite2 = G.getTextSprite(letters[i],CELLSIZE,'#b90000',1.1,'cursive');
+            canvas.ctx.drawImage(sprite, cx+1,1);
+            canvas.ctx.drawImage(sprite2, cx, 0);
+            cx += CELLSIZE;
+        }
+        return canvas;
+    }
+    getThumbnail(){
+        var w = 320;
+        var h = 320;
+        var canvas = G.makeCanvas(w,h);
+        var space = G.randomPattern('#000','#fff',0.001,w,h);
+        canvas.fillPatern(space);
+
+        canvas.ctx.drawImage(this.catorbit, w/2-this.catorbit.w/2,  h/2-this.catorbit.h/2);
+        var pt1 = G.crop(this.familiarSprite,0,0,CELLSIZE*4,this.familiarSprite.h);
+        var pt2 = G.crop(this.familiarSprite,CELLSIZE*4,0,this.familiarSprite.w - CELLSIZE*4,this.familiarSprite.h);
+        canvas.ctx.drawImage(pt1,0,0);
+        canvas.ctx.drawImage(pt2,0,pt1.h);
+        canvas.ctx.drawImage(this.credit, 0,  canvas.h - this.credit.h);
+        return canvas;
+    }
+    getCover(){
+        var w= 800;var h = 500;
+        var canvas = G.makeCanvas(w,h);
+        var space = G.randomPattern('#000','#fff',0.001,w,h);
+        canvas.fillPatern(space);
+        canvas.ctx.drawImage(this.witchsprite, w/2-this.witchsprite.w/2 - this.witchsprite.w,  h/2-this.witchsprite.h/2);
+        canvas.ctx.drawImage(this.witchsprite, w/2-this.witchsprite.w/2 + this.witchsprite.w,  h/2-this.witchsprite.h/2);
+        canvas.ctx.drawImage(this.catorbit2, w/2-this.catorbit2.w/2,  h/2-this.catorbit2.h/2);
+
+        canvas.ctx.drawImage(this.familiarSprite,canvas.w/2-this.familiarSprite.w/2,CELLSIZE);
+
+        canvas.ctx.drawImage(this.credit, 0,  canvas.h - this.credit.h);
+        return canvas;
+    }
+}

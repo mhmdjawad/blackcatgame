@@ -1,3 +1,21 @@
+<<<<<<< HEAD
+import type { GameCanvasElement,NavItem } from "../interface";
+import G from "../util/G";
+import { CELLSIZE } from "../util/const";
+import { GameEngine } from "../classes/GameEngine";
+import SpriteEngine from "../util/SpriteEngine";
+import { GameMap } from "../classes/Map";
+import Player from "../classes/Player";
+import { Portal } from "../classes/Map";
+import Clickable from "../classes/Clickable";
+import SoundSystem from "../util/SoundSystem";
+import Intro from "../scenes/Intro";
+import CombatScene from "../classes/CombatScene";
+import DungeonScene from "../classes/DungeonScene";
+import SummoningCatScene from "../scenes/SummoningCatScene";
+let GameDimC = 10;
+class Game extends GameEngine{
+=======
 interface GameCanvasElement extends HTMLCanvasElement {
     w: number;
     h: number;
@@ -9,10 +27,6 @@ interface GameCanvasElement extends HTMLCanvasElement {
 }
 interface GameTableElement extends HTMLTableElement{
     entities : HTMLTableCellElement[][];
-}
-interface Rect {
-    w:number;
-    h:number;
 }
 interface NavItem{
     html : string,
@@ -26,11 +40,7 @@ interface Spell{
     spd : number
 }
 let CELLSIZE = 32;
-let GameDimR = 10;
 let GameDimC = 10;
-const MAZESIZE = 50;
-const SOUNDVOLUME = 0.15;
-const floor = Math.floor;
 const ELEMENTS = ['🔥','💧','🌱','🌪️','⚡','☀️','🌑'];
 var songBgm = {songData: [{ i: [0, 0, 140, 0, 0, 0, 140, 0, 0, 255, 158, 158, 158, 0, 0, 0, 0, 51, 2, 1, 2, 58, 239, 0, 32, 88, 1, 157, 2 ],p: [1,1,1,1],c: [{n: [161,,,,,,,,,,,,,,,,163,,,,,,,,159],f: []}]},{ i: [0, 91, 128, 0, 0, 95, 128, 12, 0, 0, 12, 0, 72, 0, 0, 0, 0, 0, 0, 0, 2, 255, 0, 0, 32, 83, 3, 130, 4 ],p: [1,1,2,1],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144],f: []},{n: [156,,163,,161,,159,,158,,159,,158,,156,,156,,163,,161,,159,,158,,159,,158,,168],f: []}]},{ i: [0, 16, 133, 0, 0, 28, 126, 12, 0, 0, 2, 0, 60, 0, 0, 0, 0, 0, 0, 0, 2, 91, 0, 0, 32, 47, 3, 157, 2 ],p: [1,2,1,2],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144],f: []},{n: [168,,175,,173,,171,,170,,171,,170,,168,,168,,175,,173,,171,,170,,171,,170,,168],f: []}]},{ i: [0, 255, 116, 79, 0, 255, 116, 0, 83, 0, 4, 6, 69, 52, 0, 0, 0, 0, 0, 0, 2, 14, 0, 0, 32, 0, 0, 0, 0 ],p: [1,1,1,1],c: [{n: [144,,151,,149,,147,,146,,147,,146,,144,,144,,151,,149,,147,,146,,147,,146,,144,,,159,,,,159,,,,159,,,,,,,,,,,,159,,159],f: []}]},],rowLen: 8269,   patternLen: 32,  endPattern: 3,  numChannels: 4  };
 // const EMOJI = G.getEmojiSprite(`💓`,64,1.3);
@@ -46,6 +56,8 @@ var ELEMENTALS = [
     {v:'l', e:'☀️', c:'#ffb'},
     {v:'d', e:'🌑', c:'#555'},
 ];
+console.log(ELEMENTS);
+console.log(ELEMENTALS);
 var SPELLBOOK : Spell[] = [
     {i : 'mmmmmm', r: 'm',  isattack :true,     dmg : 100 , spd : 0},
     {i : 'mmmmm', r: 'm',  isattack :true,     dmg : 40 , spd : 0},
@@ -93,52 +105,6 @@ function ccc(ctx : CanvasRenderingContext2D,color : string,x : number,y: number,
     ctx.fill();
     ctx.restore();
 }
-function drawrect(ctx : CanvasRenderingContext2D,color : string,x :number,y : number,w : number,h : number){
-    ctx.save();
-    ctx.fillStyle = color;
-    ctx.fillRect(x,y,w,h);
-    ctx.restore();
-}
-function circleLineIntersection(x0 : number, y0 : number, r : number, a : number, b : number) {
-    var A = 1 + a*a;
-    var B = 2*a*(b-y0) - 2*x0;
-    var C = x0*x0 + (b-y0)*(b-y0) - r*r;
-    var D = B*B - 4*A*C;
-    if (D < 0) return []; // No intersection
-    if (D === 0) {
-        var x = -B/(2*A);
-        var y = a*x + b;
-        return [{x, y}];
-    }
-    var sqrtD = Math.sqrt(D);
-    var x1 = (-B + sqrtD)/(2*A);
-    var x2 = (-B - sqrtD)/(2*A);
-    return [
-        {x: x1, y: a*x1 + b},
-        {x: x2, y: a*x2 + b}
-    ];
-}
-function drawLineOnCanvas(ctx : CanvasRenderingContext2D, a : number, b : number, color = '#000', width = 2) {
-    const w = ctx.canvas.width;
-    const h = ctx.canvas.height;
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    if(a == Infinity){
-        ctx.moveTo(b, 0);
-        ctx.lineTo(b, h);
-    }
-    else{
-        // Compute y at x=0 and x=w
-        let y0 = a * 0 + b;
-        let y1 = a * w + b;
-        ctx.moveTo(0, y0);
-        ctx.lineTo(w, y1);
-    }
-    ctx.stroke();
-    ctx.restore();
-}
 function pointsOnCircle(cx : number, cy : number, r : number, n : number) {
     const points = [];
     for (let i = 0; i < n; i++) {
@@ -182,7 +148,7 @@ class Clickable{
         // ctx.restore();
         ctx.drawImage(this.sprite,this.x,this.y,this.w,this.h);
     }
-    update(t:number){}
+    update(){}
 }
 class Pathfinder {
     rows:number;
@@ -191,7 +157,7 @@ class Pathfinder {
     constructor(maze : number[][]) {
         this.maze = maze;
         this.rows = maze.length;
-        this.cols = maze[0].length;
+        this.cols = maze[0]?.length ?? 0;
     }
     findPath(startRow : number, startCol : number, endRow : number, endCol : number) {
         startRow = Math.floor(startRow);
@@ -249,10 +215,10 @@ class MapBase{
 
     constructor(game : Game,blueprint : GameCanvasElement){
         this.game = game;
-        this.blueprintasmatrix = G.getColorMatrix(blueprint,(r : any)=>{
+        this.blueprintasmatrix = blueprint ? G.getColorMatrix(blueprint,(r : any)=>{
             if(r == '') return null;
             return r;
-        });
+        }) : [];
         this.colordict = [
             {c:'#847e87',o: 0, l:'', s: undefined},
         ];
@@ -301,21 +267,6 @@ class MapBase{
     }
 
 }
-class DungeonMap extends MapBase{
-    pos:any;
-    mobs:any;
-    constructor(game : Game,pos : Point){
-        super(game,game.spriteEngine.dungeonprint1);
-        this.pos = pos;
-        this.mobs = [];
-    }
-    RenderMap(blueprint : any){
-
-    }
-    GenMap(){
-
-    }
-}
 class Portal{
     game:Game;
     animations : GameCanvasElement[];
@@ -358,7 +309,7 @@ class Portal{
         if (score < 64) return 8;
         return 9 + Math.round(Math.random());
     }
-    update(t = 0){
+    update(){
         this.animate.frame++;
         if(this.animate.frame > this.animate.framerate){
             this.sprite = this.animations[this.animate.index];
@@ -387,7 +338,7 @@ class GameMap extends MapBase{
     locations_portal : any[];
     
     constructor(game :Game){
-        super(game,game.spriteEngine.mapBlueprint);
+        super(game,game.spriteEngine?.mapBlueprint);
         this.cw = this.game.canvasDim.w;
         this.ch = this.game.canvasDim.h;
         var dirt = SpriteEngine.GenDirtTile(CELLSIZE,CELLSIZE);
@@ -399,7 +350,7 @@ class GameMap extends MapBase{
         var church = G.getEmojiSprite(`⛪`,CELLSIZE*3,1.3);
         var townhall = G.getEmojiSprite(`🏫`,CELLSIZE*3,1.3);
         var tent = G.getEmojiSprite(`⛺`,CELLSIZE*3,1.3);
-        var portal = G.getEmojiSprite(`🌀`,CELLSIZE*2,1.3);
+        // var portal = G.getEmojiSprite(`🌀`,CELLSIZE*2,1.3);
         var stoneBrickWall = SpriteEngine.GenCozyWallTile(CELLSIZE);
         this.locations_portal = [];
         this.colordict = [
@@ -456,7 +407,7 @@ class GameMap extends MapBase{
 class Cat{
     animations : GameCanvasElement[];
     constructor(game : Game){
-        this.animations = game.spriteEngine.AnimateCat(); 
+        this.animations = game.spriteEngine?.AnimateCat() ?? []; 
     }
     Idle(){
         return this.animations[0];
@@ -1000,7 +951,7 @@ class G{
     static makeDom(html : string) : HTMLDivElement{
         var h = document.createElement('div');
         h.innerHTML = html;
-        return h;
+        return h.firstChild as HTMLDivElement;
     }
     static shuffleArray(array = []) {
         for (let i = array.length - 1; i > 0; i--) {const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]];}return array;
@@ -1081,6 +1032,8 @@ class G{
         return '#' + ((r << 16) + (g << 8) + b).toString(16).padStart(6, '0');
     }
     static getColorMatrix (canvas : GameCanvasElement,changefct : Function | null = null) : any[][]{
+        var matrix : any[][] = [];
+        if(canvas.w <= 1 || canvas.h <= 1) return matrix;
         var context = canvas.ctx;
         var width = canvas.width;
         var height = canvas.height;
@@ -1097,7 +1050,7 @@ class G{
                     )
                 );
         }
-        var matrix : any[][] = [];
+        
         for(let i = 0 ; i < canvas.height;i++){matrix[i] = [];}
         let c = 0, r = 0;
         for(let i = 0 ; i < colorMatrix.length;i++){
@@ -1225,7 +1178,7 @@ class SpriteEngine{
     dungeonprint1 : GameCanvasElement;
     constructor(img : any){
         if(img == null){
-            img = G.makeCanvas(1,1);
+            img = G.makeCanvas(128,128);
         }
         var imgCanvas = G.imgToCanvas(img);
         var mat = G.getColorMatrix(imgCanvas,(r = '')=>{
@@ -1503,7 +1456,7 @@ class GameEnginge{
     body : HTMLDivElement = G.makeDom('');
     footer : HTMLDivElement = G.makeDom('');
     player:Player = new Player({} as Game);
-    constructor(c:any){
+    constructor(){
         this.config = {
             music : false,
             sound : false,
@@ -1515,7 +1468,7 @@ class GameEnginge{
         if(this.windowaspect > 1){
             CELLSIZE = 16*2;
         }
-        GameDimR = Math.floor(window.innerHeight/CELLSIZE) - 2.5;
+        // GameDimR = Math.floor(window.innerHeight/CELLSIZE) - 2.5;
         GameDimC = Math.floor(window.innerWidth/CELLSIZE)- 1;
         this.helpdom = document.createElement('div');
         document.body.innerHTML = ``;
@@ -1554,10 +1507,10 @@ class GameEnginge{
         ]
         keys.forEach(k=>{
             var dom = G.makeDom(k.html);
-            entities[k.r][k.c].addEventListener('touchstart',(e)=> this.player.keys.keydown(k.f));
-            entities[k.r][k.c].addEventListener('touchend',(e)=> this.player.keys.keyup(k.f));
-            entities[k.r][k.c].addEventListener('mousedown',(e)=> this.player.keys.keydown(k.f));
-            entities[k.r][k.c].addEventListener('mouseup',(e)=> this.player.keys.keyup(k.f));
+            entities[k.r][k.c].addEventListener('touchstart',()=> this.player.keys.keydown(k.f));
+            entities[k.r][k.c].addEventListener('touchend',()=> this.player.keys.keyup(k.f));
+            entities[k.r][k.c].addEventListener('mousedown',()=> this.player.keys.keydown(k.f));
+            entities[k.r][k.c].addEventListener('mouseup',()=> this.player.keys.keyup(k.f));
             entities[k.r][k.c].append(dom) ;
             entities[k.r][k.c].style.border = '2px solid black';
             entities[k.r][k.c].style.background = 'blue';
@@ -1626,7 +1579,7 @@ class Player{
         this.destination = G.Point(this.center);
         this.pathplan = [];
     }
-    update(t:number){
+    update(){
         this.animation.spritesheet = this.moving ? this.catWalkAnimation : this.catIdleAnimation;
         this.animation.frame++;
         if(this.animation.frame >= this.animation.framerate){
@@ -1667,12 +1620,13 @@ class Player{
             j : Math.floor(G.NormGrid(cameraXY.y + pos.y,CELLSIZE) / CELLSIZE),
         }
         if(this.moving == false){
-            if(!this.game.gamemap.isObstacle(indexIJ)){
+            var gamemap = this.game.gamemap as GameMap;
+            if(!gamemap.isObstacle(indexIJ)){
                 var origin = {
                     i : Math.floor(this.center.x/CELLSIZE),
                     j : Math.floor(this.center.y/CELLSIZE),
                 }
-                this.pathplan = this.game.gamemap.findPathNormPt(origin,indexIJ);
+                this.pathplan = gamemap.findPathNormPt(origin,indexIJ);
             }
         }
     }
@@ -1820,7 +1774,7 @@ class CombatScene{
         this.arrowSprite = G.getEmojiSprite('➡',this.tilesize,1.3,'#fff');
         this.explosionsprite = G.getEmojiSprite('💥',this.tilesize,1.3,'#fff');
         this.menuclickables = [
-            new Clickable(0,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('🚪',CELLSIZE*1.5,1.4),(e :any)=>{ endscenefct && endscenefct(this)}),
+            new Clickable(0,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('🚪',CELLSIZE*1.5,1.4),()=>{ endscenefct && endscenefct(this)}),
             // new Clickable(CELLSIZE*1.5,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('🎒',CELLSIZE*1.5,1.4),(e)=>{this.inventory()}),
         ];
         this.playercardattrib = {
@@ -1866,11 +1820,11 @@ class CombatScene{
         this.rows = Math.floor(this.canvas.h/this.blocksize/2);
         this.cols = Math.floor(this.canvas.w/this.blocksize);
         this.touchPos = null;
-        this.canvas.addEventListener('mousedown', (e : any) => handleStart(e));
+        this.canvas.addEventListener('mousedown', () => handleStart());
         this.canvas.addEventListener('mouseup', (e: any) => handleEnd(e));
         this.canvas.addEventListener('mousemove', (e: any) => handleMove(e));
         // Touch events
-        this.canvas.addEventListener('touchstart', (e: any) => handleStart(e));
+        this.canvas.addEventListener('touchstart', () => handleStart());
         this.canvas.addEventListener('touchend', (e: any) => handleEnd(e));
         this.canvas.addEventListener('touchmove', (e: any) => handleMove(e));
         var handleEnd = (e :any)=>{
@@ -1914,7 +1868,7 @@ class CombatScene{
                 this.menuclickables.forEach( (x: any)=> {if(x.handleTouchPos) x.handleTouchPos(pt)});
             });
         }
-        var handleStart = (e : any)=>{
+        var handleStart = ()=>{
             this.isClick = true;
         }
         var handleMove = (e : any)=>{
@@ -1940,7 +1894,7 @@ class CombatScene{
             });
         }
         this.newBoard();
-        this.update(0);
+        this.update();
     }
     getAmbient(scene : string){
         var canvas = G.makeCanvas(this.w,this.h);
@@ -2058,7 +2012,7 @@ class CombatScene{
             return G.fuseImage(this.roundRectS2,emojisprt);
         }
     }
-    update(t =0){
+    update(){
         if(this.mobcardattrib.health <= 0){
             this.endscenefct(this);
             return;
@@ -2102,7 +2056,7 @@ class CombatScene{
         }
         this.cards.forEach(x=> x.draw(ctx));
         this.menuclickables.forEach(x=> x.draw(this.canvas.ctx));
-        requestAnimationFrame(newtime=>this.update(newtime));
+        requestAnimationFrame(()=>this.update());
     }
     newBoard(){
         this.currentPointer = {x:-Infinity,y:-Infinity};
@@ -2148,7 +2102,7 @@ class DungeonScene{
         }
         game.body.append(btnback);
     }
-    update(t =0){
+    update(){
         
     }
 }
@@ -2215,10 +2169,10 @@ class Intro{
         this.menuclickables.forEach(btn=>{
             btn.draw(ctx)
         })
-        this.canvas.addEventListener('mousedown', (e) => handleStart(e));
+        this.canvas.addEventListener('mousedown', () => handleStart());
         this.canvas.addEventListener('mouseup', (e) => handleEnd(e));
         this.canvas.addEventListener('mousemove', (e) => handleMove(e));
-        this.canvas.addEventListener('touchstart', (e) => handleStart(e));
+        this.canvas.addEventListener('touchstart', () => handleStart());
         this.canvas.addEventListener('touchend', (e) => handleEnd(e));
         this.canvas.addEventListener('touchmove', (e) => handleMove(e));
         var handleEnd = (e : any)=>{
@@ -2226,23 +2180,22 @@ class Intro{
                 this.menuclickables.forEach(x=> {if(x.handleTouchPos) x.handleTouchPos(pt)});
             });
         }
-        var handleStart = (e: any)=>{
+        var handleStart = ()=>{
             this.isClick = true;
         }
         var handleMove = (e: any)=>{
-            G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt:any)=>{
-                
-            });
+            G.mapClick(e.touches ? e.touches[0] : e,this.canvas,()=>{});
         }
     }
 }
 class Game extends GameEnginge{
+>>>>>>> cb83304c78237135462280aa2d7969381c3a6d9f
     spriteEngine : SpriteEngine = new SpriteEngine(null);
     cellSize : number = 0;
     objects : any[] = [];
     canvasDim : {w:number,h:number};
     canvas : GameCanvasElement = G.makeCanvas();
-    gamemap : GameMap = new GameMap({} as Game);
+    gamemap : GameMap | null = null;
     gamePased : boolean = false;
     dialog : HTMLElement = G.makeDom('');
     time : number = 0;
@@ -2257,10 +2210,10 @@ class Game extends GameEnginge{
     scene : any = null;
     events:any = {};
     touchPos:any = {};
-    SoundSystem : SoundSystem = new SoundSystem();
+    SoundSystem : SoundSystem | null = null;
     
-    constructor(c : any){
-        super(c);
+    constructor(){
+        super();
         this.canvasDim = {w :600 , h :600};
         G.loadImage('sh1.gif?'+Math.random(),(img : any)=>{
             this.cellSize = CELLSIZE;
@@ -2345,7 +2298,7 @@ class Game extends GameEnginge{
         this.body.appendChild(this.helpdom);
         this.player = new Player(this);
         this.menuclickables = [
-            new Clickable(0,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('📋',CELLSIZE*1.5,1.4),(e)=>{this.showMenu()})
+            new Clickable(0,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('📋',CELLSIZE*1.5,1.4),()=>{this.showMenu()})
         ]
         this.objects = [
             this.player,
@@ -2446,7 +2399,7 @@ class Game extends GameEnginge{
         else if(item == 'paracticecombat'){
             this.gamePased = true;
             this.dialog.remove();
-            this.scene = new CombatScene(this,null,null,'garden',(e)=>{
+            this.scene = new CombatScene(this,null,null,'garden',()=>{
                 console.log('combat training over');
                 this.scene = null;
                 this.gamePased = true;
@@ -2456,7 +2409,7 @@ class Game extends GameEnginge{
             });
         }
     }
-    parseNum(v){
+    parseNum(v : number){
         if(v >= 10000000000) return `${(v/10000000000).toFixed(1)}T`;
         if(v >= 100000000) return `${(v/100000000).toFixed(1)}B`;
         if(v >= 1000000) return `${(v/1000000).toFixed(1)}M`;
@@ -2464,7 +2417,8 @@ class Game extends GameEnginge{
         return `${v}`;
     }
     updateBuffer(){
-        var basemaplayout = this.gamemap.map;
+        var gamemap = this.gamemap as GameMap;
+        var basemaplayout = gamemap.map;
         var ctx = basemaplayout.ctx;
         //draw player and objects on map
         this.player.draw(ctx);
@@ -2477,11 +2431,14 @@ class Game extends GameEnginge{
         );
         return cropmap;
     }
-    update(t){
+    gameOverScene(){
+
+    }
+    update(t = 0){
         if(this.gamePased == true){return;}
         if(this.gameover == true) return this.gameOverScene();
         this.objects.forEach(x=> x.update(t));
-        var basemaplayout = this.gamemap.getMap();
+        var basemaplayout = this.gamemap?.getMap() ?? G.EmptyCanv();
         var bufferctx = basemaplayout.ctx;
         //draw player and objects on map
         this.objects.sort((a, b) => {return a.pos ? a.pos?.y : Infinity - b.pos ? b.pos?.y : Infinity;});
@@ -2506,7 +2463,7 @@ class Game extends GameEnginge{
         this.time = t;
         requestAnimationFrame(newtime=>this.update(newtime));
     }
-    openPortalMenu(portal){
+    openPortalMenu(portal : Portal){
         if(this.dialog != null){this.dialog.remove();}
         this.dialog = Object.assign(document.createElement('div'), { className: 'menuDialog'});
         var infodom = G.makeDom(`<div><h3>Portal Level ${portal.level}<h3></div>`);
@@ -2526,141 +2483,46 @@ class Game extends GameEnginge{
         this.dialog.append(nav);
         this.body.append(this.dialog);
     }
-    getMainMenuBg(canvas){
+    getMainMenuBg(canvas : GameCanvasElement){
         var scene = new SummoningCatScene(this);
         scene.draw(canvas);
-        function update(t){
-            scene.update(t);
+        function update(){
+            scene.update();
             scene.draw(canvas);
             requestAnimationFrame(update);
         }
         requestAnimationFrame(update);
     }
 }
-class MakeCoverAndThumbnail{
-    constructor(game){
-        this.game = game;
-        this.familiarSprite = this.GenFamiliarSprite();
-        this.witchsprite = game.spriteEngine.red_witch;
+<<<<<<< HEAD
+export default Game;
+=======
 
-
-
-
-
-        this.credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
-        var cat = new Cat(game);
-        this.catIdle = cat.Idle();
-        this.catIdleShadow = G.GenShadow(this.catIdle,2,'#fff');
-        this.catorbit = this.GenCatOrbit();
-        this.catorbit2 = this.GenCatOrbit(600,600,200);
-        var thumbnail = this.getThumbnail();
-        var cover = this.getCover();
-        document.body.append(thumbnail);
-        document.body.append(cover);
-    }
-    GenCatOrbit(w = 300,h = 300,r = 112){
-        var w = w;
-        var h = h;
-        var canvas = G.makeCanvas(w,h);
-        var ctx = canvas.ctx;
-
-        this.elements = [
-            {s:G.getEmojiSprite('🔥',32,1.4),c:'#ee4000c7',i:0},
-            {s:G.getEmojiSprite('💧',32,1.4),c:'#00c7eec7',i:10},
-            {s:G.getEmojiSprite('🌱',32,1.4),c:'#805a05c7',i:20},
-            {s:G.getEmojiSprite('🌪️',32,1.4),c:'#cdcf84c7',i:30},
-            {s:G.getEmojiSprite('⚡',32,1.4),c:'#f9ff30c7',i:40},
-            {s:G.getEmojiSprite('🌑',32,1.4),c:'#a83bf3c7',i:50},
-            {s:G.getEmojiSprite('☀️',32,1.4),c:'#f8ff00c7',i:60},
-        ];
-
-
-        var circlesprite = G.MakeCircle(r,'#fff',null,3);
-        var centerY = h/2;
-        var centerX = w/2;
-        var circle = {x : centerX, y : centerY, r : circlesprite.w/2};
-        this.circlepoints = pointsOnCircle(circle.x,circle.y,circle.r,70);
-        ctx.drawImage(circlesprite, centerX - circlesprite.w/2, centerY- circlesprite.h/2);
-
-        this.elements.forEach(el=>{
-            var pos = this.circlepoints[el.i % this.circlepoints.length];
-           ctx.drawImage(el.s,
-                pos.x - el.s.w/2,
-                pos.y - el.s.h/2
-            );
-            var randotherelements = this.elements.filter(x=> x.c != el.c);
-            randotherelements.forEach(randotherelement=>{
-                    var otherpos = this.circlepoints[randotherelement.i % this.circlepoints.length];
-                   ctx.save();
-                   ctx.globalAlpha = 0.3;
-                   ctx.strokeStyle = el.c;
-                   ctx.lineWidth = 2;
-                   ctx.beginPath();
-                   ctx.moveTo(
-                        pos.x,
-                        pos.y
-                    );
-                   ctx.lineTo(
-                        otherpos.x,
-                        otherpos.y
-                    );
-                   ctx.stroke();
-                   ctx.globalAlpha = 1;
-                   ctx.restore();
-            });
-            //move to next
-            el.t--;if(el.t <= 0){el.t = this.rotspeed;el.i++;}
-        });
-        ctx.drawImage(this.catIdleShadow, w/2 -this. catIdleShadow.w/2, h/2 - this.catIdleShadow.h/2);
-        ctx.drawImage(this.catIdle, w/2 -this. catIdle.w/2, h/2 - this.catIdle.h/2);
-
-        return canvas;
-    }
-    GenFamiliarSprite(){
-        var letters = ['T','H','E',' ','F','A','M','I','L','I','A','R'];
-        var canvas = G.makeCanvas(64*letters.length,CELLSIZE+4);
-        var cx = 0;
-        for(let i in letters){
-            var sprite = G.getTextSprite(letters[i],CELLSIZE,'#fff',1.1,'cursive');
-            var sprite2 = G.getTextSprite(letters[i],CELLSIZE,'#b90000',1.1,'cursive');
-            canvas.ctx.drawImage(sprite, cx+1,1);
-            canvas.ctx.drawImage(sprite2, cx, 0);
-            cx += CELLSIZE;
-        }
-        return canvas;
-    }
-    getThumbnail(){
-        var w = 320;
-        var h = 320;
-        var canvas = G.makeCanvas(w,h);
-        var space = G.randomPattern('#000','#fff',0.001,w,h);
-        canvas.fillPatern(space);
-
-        canvas.ctx.drawImage(this.catorbit, w/2-this.catorbit.w/2,  h/2-this.catorbit.h/2);
-        var pt1 = G.crop(this.familiarSprite,0,0,CELLSIZE*4,this.familiarSprite.h);
-        var pt2 = G.crop(this.familiarSprite,CELLSIZE*4,0,this.familiarSprite.w - CELLSIZE*4,this.familiarSprite.h);
-        canvas.ctx.drawImage(pt1,0,0);
-        canvas.ctx.drawImage(pt2,0,pt1.h);
-        canvas.ctx.drawImage(this.credit, 0,  canvas.h - this.credit.h);
-        return canvas;
-    }
-    getCover(){
-        var w= 800;var h = 500;
-        var canvas = G.makeCanvas(w,h);
-        var space = G.randomPattern('#000','#fff',0.001,w,h);
-        canvas.fillPatern(space);
-        canvas.ctx.drawImage(this.witchsprite, w/2-this.witchsprite.w/2 - this.witchsprite.w,  h/2-this.witchsprite.h/2);
-        canvas.ctx.drawImage(this.witchsprite, w/2-this.witchsprite.w/2 + this.witchsprite.w,  h/2-this.witchsprite.h/2);
-        canvas.ctx.drawImage(this.catorbit2, w/2-this.catorbit2.w/2,  h/2-this.catorbit2.h/2);
-
-        canvas.ctx.drawImage(this.familiarSprite,canvas.w/2-this.familiarSprite.w/2,CELLSIZE);
-
-        canvas.ctx.drawImage(this.credit, 0,  canvas.h - this.credit.h);
-        return canvas;
-    }
-}
 class SummoningCatScene{
-    constructor(game){
+    game : Game;
+    cat : Cat;
+    credit : GameCanvasElement;
+    catIdle : GameCanvasElement;
+    catIdleShadow : GameCanvasElement;
+    canvas : GameCanvasElement;
+    catInBox : GameCanvasElement;
+    catWalkAnimation : GameCanvasElement[];
+    catWalkAnimationShadow : GameCanvasElement[];
+    catAnimations64 : GameCanvasElement[];
+    space : GameCanvasElement;
+    rotspeed : number;
+    elements : any[];
+    circlesprite : GameCanvasElement;
+    pointsprite : GameCanvasElement;
+    circlepoints : any[];
+    circle:  any;
+    LogoY : number;
+    CatWalkingAnimationObj : any;
+    familiarSprite : any;
+
+
+
+    constructor(game : Game){
         this.game = game;
         this.cat = new Cat(game);
         this.credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
@@ -2687,7 +2549,6 @@ class SummoningCatScene{
         this.circlesprite = G.MakeCircle(CELLSIZE*4,'#fff',null,3);
         this.pointsprite = G.MakeCircle(CELLSIZE/9,'#00f','#00f',3);
         var centerY = this.canvas.h - this.circlesprite.h/2 - CELLSIZE;
-        var centerX = this.canvas.w/2;
         var circle = {x : this.canvas.w/2, y : centerY, r : this.circlesprite.w/2};
         this.circlepoints = pointsOnCircle(circle.x,circle.y,circle.r,70);
         this.circle = circle;
@@ -2720,10 +2581,10 @@ class SummoningCatScene{
             currentShowing : 0
         };
     }
-    draw(canvas){
+    draw(canvas : GameCanvasElement){
         canvas.ctx.drawImage(this.canvas,0,0);
     }
-    update(t){
+    update(){
         var randSpaceX = G.randInt(0,this.space.w-this.canvas.w);
         this.canvas.ctx.drawImage(this.space,
             0,0,
@@ -2797,6 +2658,8 @@ class SummoningCatScene{
         this.canvas.ctx.drawImage(this.credit, 0,  this.canvas.h - this.credit.h);
     }
 }
-document.addEventListener('DOMContentLoaded', function () {
-    window.game = new Game("");
-}, false);
+export default Game;
+// document.addEventListener('DOMContentLoaded', function () {
+//     window.game = new Game("");
+// }, false);
+>>>>>>> cb83304c78237135462280aa2d7969381c3a6d9f
