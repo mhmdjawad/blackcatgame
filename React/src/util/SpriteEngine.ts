@@ -1,4 +1,4 @@
-import type { GameCanvasElement } from "../interface";
+import type { GameCanvasElement } from "../classes/interface";
 import G from "./G";
 function ccc(ctx : CanvasRenderingContext2D,color : string,x : number,y: number,w: number,h: number,r1: number,r2: number){
     ctx.save();

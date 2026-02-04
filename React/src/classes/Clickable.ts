@@ -1,4 +1,4 @@
-import type { GameCanvasElement } from "../interface";
+import type { GameCanvasElement } from "./interface";
 import Point from "./Point";
 class Clickable{
     x : number;

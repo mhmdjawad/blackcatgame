@@ -1,9 +1,9 @@
 import Game from "../game/game";
-import { GameCanvasElement } from "../interface";
+import { GameCanvasElement } from "./interface";
 import Player from "./Player";
 import Clickable from "./Clickable";
 import CombatCard from "./CombatCard";
-import { CardElement,Spell } from "../interface";
+import { CardElement,Spell } from "./interface";
 import { CELLSIZE } from "../util/const";
 import G from "../util/G";
 import Collection from "./Collection";

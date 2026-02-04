@@ -1,4 +1,4 @@
-import { GameCanvasElement } from "../interface";
+import { GameCanvasElement } from "./interface";
 import type Game from "../game/game";
 export default class Cat{
     animations : GameCanvasElement[];

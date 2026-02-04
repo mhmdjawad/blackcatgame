@@ -1,4 +1,4 @@
-import type { GameCanvasElement, GameTableElement } from "../interface";
+import type { GameCanvasElement, GameTableElement } from "../classes/interface";
 import Point from "../classes/Point";
 const CELLSIZE = 64;
 export default class G{

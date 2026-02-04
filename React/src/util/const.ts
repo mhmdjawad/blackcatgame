@@ -1,4 +1,4 @@
-import { Spell } from "../interface";
+import { Spell } from "../classes/interface";
 export const CELLSIZE = 64;
 export const GameDimC = 10;
 export const ELEMENTS = ['🔥','💧','🌱','🌪️','⚡','☀️','🌑'];

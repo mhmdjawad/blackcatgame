@@ -1,7 +1,8 @@
-import { GameConfig } from "../interface";
+import { GameConfig } from "./interface"
 import Player from "./Player";
 import G from "../util/G";
 import { CELLSIZE, GameDimC } from "../util/const";
+import type Game from "../game/game";
 export class GameEngine{
     config :GameConfig;
     windowaspect : number;
@@ -10,7 +11,7 @@ export class GameEngine{
     header : HTMLDivElement = G.makeDom('');
     body : HTMLDivElement = G.makeDom('');
     footer : HTMLDivElement = G.makeDom('');
-    player: Player = new Player(this);
+    player: Player = new Player({} as Game);
     constructor(){
         this.config = {
             music : false,

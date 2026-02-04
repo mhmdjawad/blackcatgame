@@ -1,4 +1,4 @@
-import { GameCanvasElement } from "../interface";
+import { GameCanvasElement } from "./interface";
 import G from "../util/G";
 import { CELLSIZE } from "../util/const";
 

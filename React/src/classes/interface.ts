@@ -1,4 +1,4 @@
-class GameCanvasElement extends HTMLCanvasElement {
+export class GameCanvasElement extends HTMLCanvasElement {
     w: number = 0;
     h: number = 0;
     ctx: CanvasRenderingContext2D = new CanvasRenderingContext2D;
@@ -11,39 +11,38 @@ class GameCanvasElement extends HTMLCanvasElement {
     }
 
 }
-class GameTableElement extends HTMLTableElement{
+export class GameTableElement extends HTMLTableElement{
     entities : HTMLTableCellElement[][] = [];
     constructor(){
         super();
     }
 }
-class NavItem{
+export class NavItem{
     html : string = '';
     f : string = '';
 }
-class Spell{
+export class Spell{
     i : string = '';
     r: string = '';
     isattack :boolean = false;     
     dmg : number = 0;
     spd : number = 0;
 }
-class GameConfig{
+export class GameConfig{
     music : boolean = false;
     sound : boolean = false;
     controls: boolean = false;
 }
-class Animation{
+export class Animation{
     framerate : number = 0;
     frame:number = 0;
     spriteindex:number = 0;
     spritesheet : any[] = [];
 }
-class CardElement{
+export class CardElement{
     v:string = '';
     e:string = '';
     s:GameCanvasElement = new GameCanvasElement;
     sd:GameCanvasElement = new GameCanvasElement;
     c:string = '';
 }
-export {GameCanvasElement,GameTableElement,NavItem,Spell, GameConfig, Animation, CardElement}

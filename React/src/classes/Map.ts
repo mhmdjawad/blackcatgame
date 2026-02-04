@@ -1,5 +1,5 @@
 import Pathfinder from "./Pathfinder";
-import type { GameCanvasElement } from "../interface";
+import type { GameCanvasElement } from "./interface";
 import type Game from "../game/game";
 import G from "../util/G";
 import Point from "./Point";

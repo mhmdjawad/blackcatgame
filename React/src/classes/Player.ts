@@ -1,3 +1,11 @@
+import Game from "../game/game";
+import Cat from "./Cat";
+import { GameCanvasElement } from "./interface";
+import Point from "./Point";
+import { CELLSIZE } from "../util/const";
+import G from "../util/G";
+import { GameMap } from "./Map";
+
 export default class Player{
     game: Game;
     xp : number;
@@ -8,7 +16,7 @@ export default class Player{
     cat : Cat;
     catIdleAnimation : GameCanvasElement[];
     catWalkAnimation : GameCanvasElement[];
-    animation : Animation;
+    animation : any;
     center:Point;
     pos:Point;
     sprite:GameCanvasElement;

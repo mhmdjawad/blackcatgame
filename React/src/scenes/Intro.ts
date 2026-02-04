@@ -1,5 +1,5 @@
 import Game from "../game/game";
-import { GameCanvasElement } from "../interface";
+import { GameCanvasElement } from "../classes/interface";
 import Clickable from "../classes/Clickable";
 import G from "../util/G";
 import { CELLSIZE } from "../util/const";

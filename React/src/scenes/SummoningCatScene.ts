@@ -1,6 +1,6 @@
 import Game from "../game/game";
 import Cat from "../classes/Cat";
-import { GameCanvasElement } from "../interface";
+import { GameCanvasElement } from "../classes/interface";
 import G from "../util/G";
 function pointsOnCircle(cx : number, cy : number, r : number, n : number) {
     const points = [];
@@ -13,7 +13,6 @@ function pointsOnCircle(cx : number, cy : number, r : number, n : number) {
     return points;
 }
 import { CELLSIZE } from "../util/const";
-
 export default class SummoningCatScene{
     game : Game;
     cat : Cat;
@@ -35,9 +34,6 @@ export default class SummoningCatScene{
     LogoY : number;
     CatWalkingAnimationObj : any;
     familiarSprite : any;
-
-
-
     constructor(game : Game){
         this.game = game;
         this.cat = new Cat(game);
