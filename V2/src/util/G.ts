@@ -178,7 +178,7 @@ export default class G{
         buffer.ctx.fillRect(0, 0, buffer.w, buffer.h);
         return buffer;
     }
-    static merge(list = [],w = 0,h = 0){
+    static merge(list :GameCanvasElement[] = [],w = 0,h = 0){
         var c = G.makeCanvas(w,h);
         for(let i in list){
             c.ctx.drawImage(list[i],0,0);
@@ -280,7 +280,7 @@ export default class G{
         c.ctx.drawImage(img,0,0);
         return c;
     }
-    static colorsMatrixToSprite(matrix : string[][],scale = 1,deform = (c: string)=>{return c;}){
+    static colorsMatrixToSprite(matrix : any[][],scale = 1,deform = (c: any | null)=>{return c;}){
         let height = matrix.length;
         let width = Math.max(...matrix.map((row)=> row.length));
         var buffer = G.makeCanvas(width * scale,height* scale);

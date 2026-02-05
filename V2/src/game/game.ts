@@ -12,6 +12,8 @@ import Intro from "../scenes/Intro";
 import CombatScene from "../classes/CombatScene";
 import DungeonScene from "../classes/DungeonScene";
 import SummoningCatScene from "../scenes/SummoningCatScene";
+import Control from "../helper/control";
+import PixelFontE from "../util/PixelFontE";
 let GameDimC = 10;
 class Game extends GameEngine{
     spriteEngine : SpriteEngine = new SpriteEngine(null);
@@ -38,13 +40,16 @@ class Game extends GameEngine{
     
     constructor(){
         super();
-        this.canvasDim = {w :600 , h :600};
+        this.canvasDim = {w :600 , h :800};
         G.loadImage('sh1.gif?'+Math.random(),(img : any)=>{
             this.cellSize = CELLSIZE;
             this.spriteEngine = new SpriteEngine(img);
             this.objects = [];
-            // new MakeCoverAndThumbnail(this);
-            this.mainScene();
+            var pixelfont = new PixelFontE();
+            var line1 = pixelfont.getLine('New pixel font',1,'red');
+            document.body.append(line1);
+            // (window as any).scene = new Control(this);
+            // this.mainScene();
         })
         return;
     }

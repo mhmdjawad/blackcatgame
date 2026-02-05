@@ -4,6 +4,7 @@ import type Game from "../game/game";
 import G from "../util/G";
 import Point from "./Point";
 import { CELLSIZE } from "../util/const";
+import SpriteEngine from "../util/SpriteEngine";
 export class MapBase{
     game : Game;
     blueprintasmatrix : any[][];
