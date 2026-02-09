@@ -275,6 +275,19 @@ export default class G{
         }
         return matrix;
     }
+    static getImageDataWithPalette(canvas : GameCanvasElement){
+        var palette : any[] = [null];
+        var matrixInColor = G.getColorMatrix(canvas,(c : any)=>{
+            if(c && !palette.includes(c)) palette.push(c);
+            return c;
+        });
+        var palettemap :any = {};
+        for(let i  = 0 ; i < palette.length ; i++){
+            palettemap[palette[i]] = i;
+        }
+        var matrix = matrixInColor.map((row:any[]) => row.map((color:any) => palettemap[color]));
+        return { palette, matrix };
+    }
     static imgToCanvas(img : any){
         var c = G.makeCanvas(img.width,img.height);
         c.ctx.drawImage(img,0,0);

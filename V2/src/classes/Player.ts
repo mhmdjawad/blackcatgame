@@ -40,7 +40,7 @@ export default class Player{
         ];
         this.speed = 2;
         this.visibility = CELLSIZE * 4;
-        this.cat = new Cat(game);
+        this.cat = new Cat();
         this.catIdleAnimation = this.cat.IdleAnimation();
         this.catWalkAnimation = this.cat.WalkingAnimation();
         this.animation = {

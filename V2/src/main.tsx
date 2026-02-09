@@ -1,5 +1,4 @@
 import Game from "./game/game";
-import "./index.css";
 // import { mountSupportApp } from "./support";
 // mountSupportApp();
 if (!(window as any).game) {

@@ -1,4 +1,4 @@
-class Timer {
+export default class Timer {
     accumulatedTime : number;
     lastTime : number;
     deltaTime : number;

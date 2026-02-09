@@ -36,7 +36,7 @@ export default class SummoningCatScene{
     familiarSprite : any;
     constructor(game : Game){
         this.game = game;
-        this.cat = new Cat(game);
+        this.cat = new Cat();
         this.credit = G.getTextSprite(`BY MHMDJAWADZD`,   16, `#fff`, 1.5, 'cursive');
         this.catIdle = this.cat.Idle();
         this.catIdleShadow = G.GenShadow(this.catIdle,2,'#fff');

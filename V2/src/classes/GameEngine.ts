@@ -12,22 +12,27 @@ export class GameEngine{
     body : HTMLDivElement = G.makeDom('');
     footer : HTMLDivElement = G.makeDom('');
     player: Player = new Player({} as Game);
-    constructor(){
+    container : HTMLElement;
+    constructor(containerId : string){
         this.config = {
             music : false,
             sound : false,
             controls:false
         };
+        var containerElement = document.getElementById(containerId);
+        if(containerElement == null){
+            var containerDom = G.makeDom(`<div id="${containerId}"></div>`);
+            document.body.appendChild(containerDom);
+            this.container = containerDom;
+        }
+        else{
+            this.container = containerElement
+        }
+        this.container.innerHTML = ``;
         this.resetBody();
         this.preLoading();
         this.windowaspect = window.innerHeight/window.innerWidth;
-        // if(this.windowaspect > 1){
-        //     CELLSIZE = 16*2;
-        // }
-        // GameDimR = Math.floor(window.innerHeight/CELLSIZE) - 2.5;
-        // GameDimC = Math.floor(window.innerWidth/CELLSIZE)- 1;
         this.helpdom = document.createElement('div');
-        document.body.innerHTML = ``;
     }
     preLoading(){
         var about = G.makeDom(`<div>Loading....</div>`);
@@ -42,8 +47,8 @@ export class GameEngine{
         this.layout.appendChild(this.header);
         this.layout.appendChild(this.body);
         this.layout.appendChild(this.footer);
-        document.body.innerHTML = ``;
-        document.body.appendChild(this.layout);
+        this.container.innerHTML = ``;
+        this.container.appendChild(this.layout);
     }
     prepFootercontrols(){
         if(this.config.controls == false){

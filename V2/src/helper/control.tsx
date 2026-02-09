@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import type Game from "../game/game";
 import G from '../util/G';
-import U8Matrix from '../util/U8Matrix';
+import EmojiSpriteSheet from '../util/EmojiSpriteSheet';
 type State = {
     file: File | null;
     previewUrl: string | null;
@@ -15,6 +15,7 @@ type State = {
 class SupportApp extends React.Component<{}, State> {
     fileInputRef = React.createRef<HTMLInputElement>();
     textInputElement = React.createRef<HTMLInputElement>();
+    textAreaElement = React.createRef<HTMLTextAreaElement>();
     constructor(props: {}) {
         super(props);
         this.state = { file: null, previewUrl: null, hexArray: null, processing: false };
@@ -44,53 +45,72 @@ class SupportApp extends React.Component<{}, State> {
         img.src = URL.createObjectURL(file);
         await img.decode();
         var imagecanvas = G.imgToCanvas(img);
-        var chars = ' 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ.:-';
-        var newCanvas = G.makeCanvas(8,chars.length*8);
-        for(let i = 0 ; i < chars.length;i++){
-            var croped = G.crop(imagecanvas,i*8,0,8,8);
-            newCanvas.ctx.drawImage(croped,0,i*8);
-        }
-        var matNew = G.getColorMatrix(newCanvas,(r:any)=>{
-            if(r == '#ffffff') return 0;
-            if(r == '#000000') return 1;
-            return 0;
+        document.body.append('origin: ');
+        document.body.append(imagecanvas);
+        var matNew = G.getColorMatrix(imagecanvas,(r:any)=>{
+            return r;
         })
-        document.body.append(newCanvas);
-        console.log(matNew);
-
-        var encoded = U8Matrix.encode(matNew);
-        console.log(encoded);
-
-        var decoded = U8Matrix.decode(encoded,8,chars.length*8);
-        console.log(decoded);
-
-        var decodedcanv = G.colorsMatrixToSprite(decoded,1,(r:any) => {
-            if(r == 1) return '#000';
-            return null;
+        var decodedcanv = G.colorsMatrixToSprite(matNew,2,(r:any) => {
+            return r;
         })
-
+        document.body.append('decoded: ');
         document.body.append(decodedcanv);
-
-        /*try {
-            const arrayBuffer = await file.arrayBuffer();
-            const bytes = new Uint8Array(arrayBuffer);
-            const hexArray: string[] = [];
-            for (let i = 0; i < bytes.length; i++) {
-                hexArray.push(bytes[i].toString(16).padStart(2, '0'));
-            }
-            this.setState({ hexArray, processing: false, message: `Converted ${bytes.length} bytes to hex` });
-            // Also log to console for debugging
-            console.log('SupportApp: hexArray length', hexArray.length);
-        } catch (err) {
-            console.error('SupportApp action1 error', err);
-            this.setState({ processing: false, message: `Error reading file: ${err}` });
-        }*/
     }
-
     // Action2 / Action3: placeholders — implement as needed
     action2() {
-        console.log('SupportApp: action2 called');
-        this.setState({ message: 'Action2 called (not implemented)' });
+        var text = this.textAreaElement.current?.value || '';
+        if(text == ''){
+            text = '';
+            text += '🛡️🗡️🧌<br/>';
+            text += '🛡️🗡️🧌<br/>';
+            text += '🛡️🗡️🧌<br/>';
+        }
+
+        var data = text;
+        var lines = data.split('<br/>');
+        var spriteMatrix = [];
+        for(let i = 0; i < lines.length; i++){
+            var line = lines[i];
+            var sprites = Array.from(line).map(c=>c);
+            var row = [];
+            for(let j = 0; j < sprites.length; j++){
+                var c = sprites[j];
+                if(c != ' ' && c != ''  && c != '\n' && c != '\r' && c != '️'){
+                    row.push(c);
+                }
+            }
+            spriteMatrix.push(row);
+        }
+        console.log('matrix:', spriteMatrix);
+        var spriteSize = 32;
+        var bigCanvas = G.makeCanvas(spriteMatrix[0].length*spriteSize,spriteMatrix.length*spriteSize);
+        for(let i = 0; i < spriteMatrix.length; i++){
+            for(let j = 0; j < spriteMatrix[i].length; j++){
+                var c = spriteMatrix[i][j];
+                var sprite = G.getEmojiSprite(c,spriteSize,1.1);
+                bigCanvas.ctx.drawImage(sprite,j*spriteSize,i*spriteSize);
+            }
+        }
+        document.body.append('bigCanvas:');
+        document.body.append(bigCanvas);
+
+        return;
+        var sprite = G.getEmojiSprite(text,16,1.2);
+        var palette = new Set();
+        var matNew = G.getColorMatrix(sprite,(r:any)=>{
+            palette.add(r);
+            if(r) return '#000';
+            return r;
+        })
+        var decodedcanv = G.colorsMatrixToSprite(matNew,4,(r:any) => {
+            return r;
+        })
+        console.log('Palette:', Array.from(palette));
+        document.body.append(`Palette length ${palette.size}`);
+        document.body.append('newImg');
+        document.body.append(sprite);
+        document.body.append(decodedcanv);
+        this.setState({ message: '' });
     }
 
     action3() {
@@ -99,38 +119,49 @@ class SupportApp extends React.Component<{}, State> {
     }
 
     render() {
-        const { previewUrl, hexArray, processing, message } = this.state;
+        // const { previewUrl, hexArray, processing, message } = this.state;
         return (
             <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
                 <h2>Support App</h2>
+                {/* <div>
+                    <textarea
+                        ref= {this.textAreaElement}
+                        defaultValue=''
+                    >
+                    </textarea>
+                </div> */}
+
                 <div>
-                    <input
-                        ref= {this.textInputElement}
-                        type="text"
-                    />
+                    <button onClick={() => {
+                        var canvas = EmojiSpriteSheet.GenerateSpriteSheet(64);
+                        document.body.append('Emoji Sprite Sheet:');
+                        document.body.append(canvas);
+                    }}>
+                        Generate Emoji Sprite Sheet
+                    </button>
                 </div>
-                <div>
+
+                {/* <div>
                     <input
                         ref={this.fileInputRef}
                         type="file"
                         accept="image/*"
                         onChange={this.handleFileChange}
                     />
-                </div>
-
-                <div style={{ marginTop: 12 }}>
+                </div> */}
+                {/* <div style={{ marginTop: 12 }}>
                     <button onClick={this.action1} disabled={processing}>
                         Action1: Convert to hex
                     </button>
                     <button onClick={this.action2} style={{ marginLeft: 8 }}>
-                        Action2
+                        Action2 : Render Sprite Sheet
                     </button>
                     <button onClick={this.action3} style={{ marginLeft: 8 }}>
                         Action3
                     </button>
-                </div>
+                </div> */}
 
-                {message && <div style={{ marginTop: 12 }}>{message}</div>}
+                {/* {message && <div style={{ marginTop: 12 }}>{message}</div>} */}
 
                 {/* {previewUrl && (
                     <div style={{ marginTop: 12 }}>
@@ -138,7 +169,7 @@ class SupportApp extends React.Component<{}, State> {
                     </div>
                 )} */}
 
-                {hexArray && (
+                {/* {hexArray && (
                     <div style={{ marginTop: 12 }}>
                         <h4>Hex array ({hexArray.length} bytes)</h4>
                         <textarea
@@ -147,7 +178,7 @@ class SupportApp extends React.Component<{}, State> {
                             style={{ width: '100%', height: 200, fontFamily: 'monospace' }}
                         />
                     </div>
-                )}
+                )} */}
             </div>
         );
     }
