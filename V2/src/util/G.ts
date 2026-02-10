@@ -395,6 +395,47 @@ export default class G{
         s = Math.floor(s % 60);
         return `${h<10?0:''}${h}:${m<10?0:''}${m}:${s<10?0:''}${s}`;
     }
+    static createPicker<T extends { ods: number }>(arr: T[]) {
+        const total = arr.reduce((s, x) => s + x.ods, 0);
+        return (): T => {
+            let r = Math.random() * total;
+            for (const item of arr) {
+                r -= item.ods;
+                if (r < 0) return item;
+            }
+            // Fallback (should never happen)
+            return arr[arr.length - 1];
+        };
+    }
+    static genTexture(width:number,height:number,pool: any[], noise : number){
+        var canvas = G.makeCanvas(width,height);
+        canvas.fill(pool[0].v);
+        var stepw = width/noise;
+        var setph = width/noise;
+        var picker = G.createPicker<any>(pool);
+        for(let i = 0 ; i < height;i+= setph){
+            for(let j = 0 ; j < width;j += stepw){
+                canvas.ctx.fillStyle = picker().v;
+                canvas.ctx.fillRect(i,j,1,1);
+            }
+        }
+        return canvas;
+    }
+    static shapeTexture(width:number,height:number,shape:any, shapesize:any,color:any, xinc :number, yinc : number){
+        var canvas = G.makeCanvas(width,height);
+        var deltaSprite = G.getTextSprite(shape,shapesize,color,1);
+        var cx = -xinc;
+        var cy = -yinc;
+        for(let i = 0 ; i < height;i++){
+            for(let j = 0 ; j < width; j++){
+                canvas.ctx.drawImage(deltaSprite,cx,cy);
+                cx += xinc;
+            }
+            cy += yinc;
+            cx = -xinc;
+        }
+        return canvas;
+    }
     static rand (a=1, b=0){ return b + (a-b)*Math.random();}
     static randInt (a=1, b=0){ return G.rand(a,b)|0;}
 }
