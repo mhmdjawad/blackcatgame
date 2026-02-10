@@ -41,7 +41,7 @@ class Game extends GameEngine{
     constructor(containerId = "app"){
         super(containerId);
         var aspect = window.innerHeight/window.innerWidth;
-        this.canvasDim = {w :800  , h : aspect > 1 ? 800 * aspect : 800};
+        this.canvasDim = {w :800  , h : Math.min(aspect > 1 ? 800 * aspect : 1800,1400)};
         G.loadImage('sh1.gif?'+Math.random(),(img : any)=>{
             this.cellSize = CELLSIZE;
             this.spriteEngine = new SpriteEngine(img);
@@ -358,7 +358,11 @@ class DummyCombatScene{
     constructor(game : Game){
         var w = game.canvasDim.w;
         var h = game.canvasDim.h;
-        this.tilesize = 64;
+        this.tilesize = 128;
+        var sceneh = 300;
+        var tilesperrow = Math.floor(w/(this.tilesize)) - 1;
+        var tilespercol = Math.floor((h-sceneh)/(this.tilesize)) - 1;
+        var freemargin = (w - tilesperrow*this.tilesize) / tilesperrow;
         this.roundRectS1 = G.MakeRoundedRect(this.tilesize, this.tilesize, 12.5, '#ffffff');
         
         var canvas = G.makeCanvas(w, h);
@@ -369,7 +373,6 @@ class DummyCombatScene{
         var catSprite64 = G.magnifyByMatrix(catSprite,2);
         var mobSprite = G.getEmojiSprite('🧟',64,1.2);
         var portalSprite = G.getEmojiSprite('🌀',64,1.2);
-        var sceneh = 300;
         canvas.ctx.fillStyle = 'blue';
         canvas.ctx.fillRect(0,0,w,sceneh);
         canvas.ctx.fillStyle = 'red';
@@ -410,22 +413,22 @@ class DummyCombatScene{
         ];
         const pickElemental = this.createPicker<any>(elementals);
         var cy = sceneh + this.tilesize/2;
-        var cx = 8;
+        var cx = freemargin/2;
         canvas.ctx.fillStyle = '#b6b6b6';
         const fillRect = (color: string, x:number, y:number, w:number, h:number) => {
             canvas.ctx.fillStyle = color;
             canvas.ctx.fillRect(x, y, w, h);
         }
-        for(let i = 0 ;i < 8; i++){
-            for(let j = 0 ; j < 10 ; j++){
+        for(let i = 0 ;i < tilespercol; i++){
+            for(let j = 0 ; j < tilesperrow ; j++){
                 var el = pickElemental();
                 fillRect('#fff', cx, cy, this.tilesize, this.tilesize);
                 fillRect(el.c, cx+2, cy+2, this.tilesize -4, this.tilesize - 4);
                 canvas.ctx.drawImage(el.s,cx,cy,this.tilesize,this.tilesize);
-                cx += this.tilesize + 16;
+                cx += this.tilesize + freemargin;
             }
-            cx = 8;
-            cy += this.tilesize + 16;
+            cx = freemargin/2;
+            cy += this.tilesize + freemargin;
         }
         this.canvas = canvas;
     }
