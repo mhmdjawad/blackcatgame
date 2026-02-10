@@ -97,14 +97,14 @@ export default class Player{
             j : Math.floor(G.NormGrid(cameraXY.y + pos.y,CELLSIZE) / CELLSIZE),
         }
         if(this.moving == false){
-            var gamemap = this.game.gamemap as GameMap;
-            if(!gamemap.isObstacle(indexIJ)){
-                var origin = {
-                    i : Math.floor(this.center.x/CELLSIZE),
-                    j : Math.floor(this.center.y/CELLSIZE),
-                }
-                this.pathplan = gamemap.findPathNormPt(origin,indexIJ);
-            }
+            // var gamemap = this.game.gamemap as GameMap;
+            // if(!gamemap.isObstacle(indexIJ)){
+            //     var origin = {
+            //         i : Math.floor(this.center.x/CELLSIZE),
+            //         j : Math.floor(this.center.y/CELLSIZE),
+            //     }
+            //     this.pathplan = gamemap.findPathNormPt(origin,indexIJ);
+            // }
         }
     }
 }

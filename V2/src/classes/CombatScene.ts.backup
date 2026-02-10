@@ -12,24 +12,6 @@ import Point from "./Point";
 import SpriteEngine from "../util/SpriteEngine";
 import Cat from "./Cat";
 
-class Element{
-    frames : GameCanvasElement[];
-    sprite : GameCanvasElement;
-    frame : number = 0;
-    constructor(type : string){
-        this.frames = this.getFrames(type);
-        this.sprite = this.frames[0];
-    }
-    getFrames(type:string){
-        var canvases : GameCanvasElement[] = [];
-        var baseCanvas = G.makeCanvas(64,64);
-        var palette_water = ['','',''];
-        if(type == "water"){
-            
-        }
-        return canvases;
-    }
-}
 
 export default class CombatScene{
     game : Game;

@@ -18,9 +18,9 @@ export default class DungeonScene{
         btnback.onclick = ()=>{
             game.body.innerHTML = '';
             game.body.append(game.canvas);
-            game.gamePased = false;
-            game.dialog.remove();
-            game.update(game.time);
+            // game.gamePased = false;
+            // game.dialog.remove();
+            // game.update(game.time);
         }
         game.body.append(btnback);
     }

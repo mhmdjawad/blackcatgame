@@ -14,8 +14,8 @@ export default class Intro{
         this.game = game;
         game.body.innerHTML = '';
         game.body.append(game.canvas);
-        game.gamePased = false;
-        game.dialog.remove();
+        // game.gamePased = false;
+        // game.dialog.remove();
         this.maingamescene = G.imgToCanvas(game.canvas);
         this.canvas = G.imgToCanvas(game.canvas);
         var w = this.canvas.w;
@@ -59,9 +59,9 @@ export default class Intro{
             new Clickable(CELLSIZE*1.5,cy,buttonOK.w,buttonOK.h,buttonOK,()=>{
                 game.body.innerHTML = '';
                 game.body.append(game.canvas);
-                game.gamePased = false;
-                game.dialog.remove();
-                game.update(game.time);
+                // game.gamePased = false;
+                // game.dialog.remove();
+                // game.update(game.time);
             })
         )
         this.menuclickables.forEach(btn=>{

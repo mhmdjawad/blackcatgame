@@ -129,7 +129,7 @@ export class Portal{
     handleTouchPos(pos : Point){
         if(this.center.distance(pos) < CELLSIZE*2){
             console.log('click near me',this);
-            this.game.openPortalMenu(this);
+            // this.game.openPortalMenu(this);
         }
     }
 }
