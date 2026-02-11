@@ -21,13 +21,12 @@ const PixelData = [
     198,238,124,56,124,238,198,0,102,102,102,60,24,24,24,0,
     254,14,28,56,112,224,254,0,0,0,0,0,0,48,48,0,0,24,24,0,
     24,24,0,0,0,0,126,126,0,0,0];
-var chars = ' 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ.:-';
+const chars = ' 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ.:-';
+const PixelMatrix = U8Matrix.decode(PixelData,8,chars.length*8);
 export default class PixelFontE{
-    baseMatrix : any[][];
     constructor(){
-        this.baseMatrix = U8Matrix.decode(PixelData,8,chars.length*8);
     }
-    getFrame(matrix:any[][],frameIndex=0){
+    static getFrame(matrix:any[][],frameIndex=0){
         const start = frameIndex * 8;
         const frame = [];
         for (let i = 0; i < 8; i++) {
@@ -35,10 +34,10 @@ export default class PixelFontE{
         }
         return frame;
     }
-    getChar(char:string,multiplier = 1, color = '#000'){
+    static getChar(char:string,multiplier = 1, color = '#000'){
         var index = chars.indexOf(char.toUpperCase());
         if(index > -1){
-              var frame = this.getFrame(this.baseMatrix,index);
+              var frame = this.getFrame(PixelMatrix,index);
               return G.colorsMatrixToSprite(frame,multiplier,(r:any) => {
                     if(r == 1) return color;
                     return null;
@@ -46,12 +45,20 @@ export default class PixelFontE{
         }
         else return G.makeCanvas(multiplier*8,multiplier*8);
     }
-    getLine(line:string,multiplier=1,color='#000'){
+    static getLine(line:string,multiplier=1,color='#000'){
         var out = G.makeCanvas(line.length * multiplier * 8, multiplier * 8);
         var canvases = line.split('').map(c => this.getChar(c,multiplier,color));
         for(let i = 0 ; i < canvases.length;i++){
             out.ctx.drawImage(canvases[i],i*multiplier*8,0);
         }
         return out;
+    }
+    static getLineShadowed(line : string , multiplier = 1, color = '#000', shadow = '#fff'){
+        var linecolor1 = this.getLine(line,multiplier,color);
+        var linecolor2 = this.getLine(line,multiplier,shadow);
+        var canvas = G.makeCanvas(linecolor2.w,linecolor1.h);
+        canvas.ctx.drawImage(linecolor2,1,1);
+        canvas.ctx.drawImage(linecolor1,0,0);
+        return canvas;
     }
 }

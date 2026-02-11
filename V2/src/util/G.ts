@@ -20,10 +20,35 @@ export default class G{
             c.ctx.fillStyle = color;
             c.ctx.fillRect(0,0,w,h);
         }
+        c.stroke = (color, thickness)=>{
+            var canv2 = document.createElement('canvas');
+            canv2.width = w;
+            canv2.height = h;
+            var ctx2 = canv2.getContext('2d');
+            if(ctx2 != null){
+                ctx2.fillStyle = color;
+                ctx2.fillRect(0,0,w,w);
+                ctx2.clearRect(thickness,thickness,w-thickness*2,h-thickness*2);
+                c.ctx.drawImage(canv2,0,0);
+            }
+        }
+        c.fillRect = (color,_x,_y,_w,_h)=>{
+            c.ctx.fillStyle = color;
+            c.ctx.fillRect(_x,_y,_w,_h);
+        }
         c.fillPatern = (img)=>{
             const pattern = c.ctx.createPattern(img, "repeat") as CanvasPattern;
             if(c.ctx != null) c.ctx.fillStyle = pattern;
             c.ctx.fillRect(0, 0, w, h);
+        }
+        c.drawCentered = (canvas : GameCanvasElement) =>{
+            c.ctx.drawImage(canvas,c.w/2-canvas.w/2,c.h/2-canvas.h/2);
+        }
+        c.drawBottomCenter = (canvas:GameCanvasElement, offset : number = 0)=>{
+            c.ctx.drawImage(canvas,c.w/2-canvas.w/2,c.h-canvas.h - offset);
+        }
+        c.drawRelative = (canvas : GameCanvasElement, center : Point) =>{
+            c.ctx.drawImage(canvas,center.x -canvas.w/2, center.y -canvas.h /2);
         }
         return c;
     }
@@ -435,6 +460,151 @@ export default class G{
             cx = -xinc;
         }
         return canvas;
+    }
+    static lineColors(width:number,height:number,colors: string[]){
+        var canvas = G.makeCanvas(width,height);
+        var colx = 0;
+        for(let i = 0 ; i < height;i++){
+            canvas.fillRect(colors[colx],0,i,width,height);
+            if(++colx > colors.length) colx = 0;
+        }
+        return canvas;
+    }
+    static hueSat(color:string, factor1:number, factor2:number){
+        // adjust a color from string #rrggbb / #rgb using factors
+        // factor1: hue shift in degrees (positive or negative)
+        // factor2: saturation multiplier (1 = unchanged, 0 = desaturate)
+        try{
+            if(!color) return color;
+            let hex = color.replace('#','').trim();
+            if(hex.length === 3) hex = hex.split('').map(ch=>ch+ch).join('');
+            if(hex.length !== 6) return color;
+            const r = parseInt(hex.slice(0,2),16);
+            const g = parseInt(hex.slice(2,4),16);
+            const b = parseInt(hex.slice(4,6),16);
+
+            // RGB -> HSL
+            const rf = r/255, gf = g/255, bf = b/255;
+            const max = Math.max(rf,gf,bf), min = Math.min(rf,gf,bf);
+            let h = 0, s = 0, l = (max + min) / 2;
+            if(max !== min){
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch(max){
+                    case rf: h = (gf - bf) / d + (gf < bf ? 6 : 0); break;
+                    case gf: h = (bf - rf) / d + 2; break;
+                    case bf: h = (rf - gf) / d + 4; break;
+                }
+                h = h * 60; // degrees
+            }
+
+            // apply factors
+            if(typeof factor1 === 'number'){
+                h = (h + factor1) % 360;
+                if(h < 0) h += 360;
+            }
+            if(typeof factor2 === 'number'){
+                s = Math.max(0, Math.min(1, s * factor2));
+            }
+
+            // HSL -> RGB
+            const hue2rgb = (p:number, q:number, t:number) => {
+                if(t < 0) t += 1;
+                if(t > 1) t -= 1;
+                if(t < 1/6) return p + (q - p) * 6 * t;
+                if(t < 1/2) return q;
+                if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+
+            let rf2:number, gf2:number, bf2:number;
+            if(s === 0){
+                rf2 = gf2 = bf2 = l; // achromatic
+            } else {
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                const hk = h / 360;
+                rf2 = hue2rgb(p, q, hk + 1/3);
+                gf2 = hue2rgb(p, q, hk);
+                bf2 = hue2rgb(p, q, hk - 1/3);
+            }
+
+            const toHex = (n:number) => Math.max(0, Math.min(255, Math.round(n * 255))).toString(16).padStart(2, '0');
+            return `#${toHex(rf2)}${toHex(gf2)}${toHex(bf2)}`;
+        }
+        catch(e){
+            return color;
+        }
+    }
+    static colorToPalette(color:string, count:number, factor:number){
+        // return a set of colors (count) that in center is original color
+        // and alongside is lightified and darken colors based on factor
+        try{
+            if(!color) return [];
+            // normalize hex
+            let hex = color.replace('#','').trim();
+            if(hex.length === 3) hex = hex.split('').map(ch=>ch+ch).join('');
+            if(hex.length !== 6) return [color];
+            const r = parseInt(hex.slice(0,2),16);
+            const g = parseInt(hex.slice(2,4),16);
+            const b = parseInt(hex.slice(4,6),16);
+
+            // RGB -> HSL
+            const rf = r/255, gf = g/255, bf = b/255;
+            const max = Math.max(rf,gf,bf), min = Math.min(rf,gf,bf);
+            let h = 0, s = 0, l = (max + min) / 2;
+            if(max !== min){
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch(max){
+                    case rf: h = (gf - bf) / d + (gf < bf ? 6 : 0); break;
+                    case gf: h = (bf - rf) / d + 2; break;
+                    case bf: h = (rf - gf) / d + 4; break;
+                }
+                h = h * 60;
+            }
+
+            const hue2rgb = (p:number, q:number, t:number) => {
+                if(t < 0) t += 1;
+                if(t > 1) t -= 1;
+                if(t < 1/6) return p + (q - p) * 6 * t;
+                if(t < 1/2) return q;
+                if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+
+            const palette: string[] = [];
+            if(count <= 1){ return [color]; }
+            const centerIndex = Math.floor((count - 1) / 2);
+            // step is amount of lightness change per index (factor controls spread)
+            const step = typeof factor === 'number' ? factor : 0.08;
+
+            for(let i = 0; i < count; i++){
+                const offset = i - centerIndex;
+                // scale offset to spread for even counts
+                const adj = offset * step;
+                let newL = l + adj;
+                newL = Math.max(0, Math.min(1, newL));
+
+                // convert back to RGB
+                let rf2:number, gf2:number, bf2:number;
+                if(s === 0){ rf2 = gf2 = bf2 = newL; }
+                else{
+                    const q = newL < 0.5 ? newL * (1 + s) : newL + s - newL * s;
+                    const p = 2 * newL - q;
+                    const hk = h / 360;
+                    rf2 = hue2rgb(p, q, hk + 1/3);
+                    gf2 = hue2rgb(p, q, hk);
+                    bf2 = hue2rgb(p, q, hk - 1/3);
+                }
+                const toHex = (n:number) => Math.max(0, Math.min(255, Math.round(n * 255))).toString(16).padStart(2, '0');
+                palette.push(`#${toHex(rf2)}${toHex(gf2)}${toHex(bf2)}`);
+            }
+            return palette;
+        }
+        catch(e){
+            return [color];
+        }
     }
     static rand (a=1, b=0){ return b + (a-b)*Math.random();}
     static randInt (a=1, b=0){ return G.rand(a,b)|0;}

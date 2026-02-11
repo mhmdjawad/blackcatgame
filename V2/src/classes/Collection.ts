@@ -14,6 +14,9 @@ export default class Collection{
         this.coordinates.delete(key);
         this.score = this.getSquenceScore();
     }
+    getFirst(){
+        if(this.objects.length > 0) return this.objects[0];
+    }
     getLast(){
         if(this.objects.length > 0) return this.objects[this.objects.length - 1];
     }

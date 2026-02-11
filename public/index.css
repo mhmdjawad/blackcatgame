@@ -4,6 +4,17 @@ html, body {
     overflow: hidden;
     /* position: fixed; */
 }
+.colors{
+    --var-fire-red :#7e0606;
+    --var-fire-orange:#ffa500;
+    --var-fire-yellow:#ffff00;
+
+    --var-earth-1:#a52a2a;
+    --var-earth-2:#64570b;
+    /* #cb8c11','#946002','#64570b',"#a52a2a */
+    /* #7980f1','#0faba3','#07625d','#86dad5 */
+    /* #bb51bb','#083e7f','#ff00ff','#794087' */
+}
 #app {
     height: 100%;
     max-width:100vw;

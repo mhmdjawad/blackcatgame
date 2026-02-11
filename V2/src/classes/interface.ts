@@ -1,3 +1,5 @@
+import type Point from "./Point";
+
 export class GameCanvasElement extends HTMLCanvasElement {
     w: number = 0;
     h: number = 0;
@@ -5,7 +7,12 @@ export class GameCanvasElement extends HTMLCanvasElement {
     center: { x: number; y: number } = {x:0,y:0};
     clear: () => void = ()=>{};
     fill: (color: string) => void = ()=>{};
+    stroke: (color: string,thickness : number) => void = ()=>{};
+    fillRect: (color: string,x:number,y:number,w:number,h:number) => void = ()=>{};
     fillPatern: (img: CanvasImageSource) => void = ()=>{};
+    drawCentered : (canvas : GameCanvasElement) => void = ()=>{};
+    drawBottomCenter : (canvas : GameCanvasElement, offset :number) => void = ()=>{};
+    drawRelative : (canvas : GameCanvasElement, center : Point) => void = ()=>{};
     constructor(){
         super();
     }
