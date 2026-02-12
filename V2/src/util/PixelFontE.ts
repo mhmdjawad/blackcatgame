@@ -26,6 +26,14 @@ const PixelMatrix = U8Matrix.decode(PixelData,8,chars.length*8);
 export default class PixelFontE{
     constructor(){
     }
+    static getMatrix(){
+        return PixelMatrix;
+    }
+    static getSprite(){
+        return G.colorsMatrixToSprite(PixelMatrix,1,(r:any)=>{
+            return r == 1 ? '#000' : '#fff';
+        })
+    }
     static getFrame(matrix:any[][],frameIndex=0){
         const start = frameIndex * 8;
         const frame = [];

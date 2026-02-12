@@ -18,14 +18,26 @@ const imageInfo = {"w":32,"h":32,
         ,1,1,3,2,3,1,15,0,1,1,6,2,1,1,2,0,1,1,6,2,1,1,14,0,8,1,2,0,8,1,7,0]};
 export default class Cat{
     sprite : GameCanvasElement;
+    sprite2x : GameCanvasElement;
+    sprite3x : GameCanvasElement;
     animations : GameCanvasElement[];
     constructor(){
         this.sprite = Cat.extractImage();
+        this.sprite2x = Cat.extractImageX(2);
+        this.sprite3x = Cat.extractImageX(3);
         this.animations = Cat.AnimateCat(G.imgToCanvas(this.sprite));
+    }
+    static GetImageInfo(){
+        return imageInfo;
     }
     static extractImage(){
         var decoded = PackedImage8.decode(imageInfo.w,imageInfo.h,imageInfo.palette,new Uint8Array(imageInfo.data));
         var canvas = G.colorsMatrixToSprite(decoded);
+        return canvas;
+    }
+    static extractImageX(mult = 2){
+        var decoded = PackedImage8.decode(imageInfo.w,imageInfo.h,imageInfo.palette,new Uint8Array(imageInfo.data));
+        var canvas = G.colorsMatrixToSprite(decoded,mult);
         return canvas;
     }
     static AnimateCat(mainSprite : GameCanvasElement){

@@ -12,228 +12,122 @@ import Point from "./Point";
 import SpriteEngine from "../util/SpriteEngine";
 import Cat from "./Cat";
 import PixelFontE from "../util/PixelFontE";
+import U8Matrix from "../util/U8Matrix";
+import PackedImage8 from "../util/PackedImage8";
+import PackedImage4 from "../util/PackedImage4";
+import ColorHelper from "./ColorHelper";
 
+const wind =  {"w":32,"h":32,"palette":[null,"#5fcde4","#0b6e82"],"data":[41,0,1,5,1,86,1,165,1,106,1,148,2,0,1,85,1,90,1,85,1,169,1,90,1,165,1,64,2,0,1,170,1,85,1,106,1,86,1,169,1,84,2,0,1,6,1,149,1,90,1,149,1,170,1,85,1,0,1,5,1,90,1,165,1,86,1,165,1,106,1,149,1,64,1,2,1,170,1,169,1,85,1,169,1,90,1,165,1,64,1,0,1,2,1,170,1,85,1,106,1,86,1,169,1,80,1,0,1,170,1,90,1,149,1,90,1,149,1,169,1,80,1,0,1,170,1,86,1,165,1,90,1,149,1,169,1,84,1,0,1,2,1,149,1,165,1,90,1,165,1,170,1,84,1,37,1,90,1,169,1,165,1,90,1,165,1,170,1,84,1,42,2,170,1,165,1,90,1,165,1,170,1,84,1,0,1,42,1,170,1,165,1,90,1,165,1,170,1,84,1,0,1,5,1,170,1,165,1,90,1,165,1,170,1,84,1,0,1,5,1,85,1,165,1,90,1,165,1,169,1,80,1,5,1,90,1,85,1,149,1,90,1,150,1,169,1,80,1,22,1,170,1,150,1,85,1,106,1,154,1,165,1,64,1,0,1,2,1,169,1,85,1,170,1,106,1,149,1,64,2,0,1,165,1,86,1,169,1,170,1,85,3,0,1,149,1,90,1,166,1,169,1,84,1,0,1,5,1,90,1,149,1,106,1,154,1,165,1,64,1,0,1,90,1,170,1,149,1,170,1,106,1,148,42,0]};
+const earth = {"w":32,"h":32,"palette":[null,"#e18324","#351d05","#8e4d0a"],"data":[35,0,1,85,1,64,5,0,1,1,2,85,1,64,4,0,1,5,1,89,1,101,1,80,4,0,1,21,1,106,1,189,1,87,4,0,1,23,1,250,1,255,1,85,1,192,3,0,1,95,1,254,1,190,1,149,1,240,2,0,1,5,1,87,1,246,1,106,1,149,1,252,2,0,1,21,1,90,2,154,1,151,1,236,2,0,1,85,1,102,1,106,1,86,1,119,1,171,1,0,1,3,1,213,1,169,1,89,1,106,1,213,1,175,1,192,1,15,1,254,1,165,1,86,1,170,1,213,1,175,1,192,1,15,1,255,1,150,1,90,1,175,1,149,1,235,1,192,1,15,1,255,1,218,1,150,1,190,2,167,1,128,1,3,1,255,1,246,1,111,1,255,1,186,1,149,1,128,1,15,1,239,1,214,1,171,1,234,1,190,1,213,1,128,1,15,1,255,2,170,1,171,1,175,1,213,1,160,1,15,1,222,1,186,1,170,1,175,1,255,1,166,1,160,1,15,1,245,1,254,1,250,1,191,1,222,1,170,1,160,1,7,1,253,1,189,1,254,1,255,1,86,1,170,1,160,1,3,1,254,1,165,1,87,1,253,1,90,1,170,1,128,1,3,1,250,1,189,1,85,1,239,1,106,1,170,2,0,1,214,1,175,1,86,1,171,1,170,1,168,2,0,1,21,1,171,1,186,2,170,1,160,2,0,1,5,4,170,4,0,1,34,2,170,1,168,5,0,1,42,1,170,1,160,5,0,1,2,1,170,1,128,10,0]};
+const water = {"w":32,"h":32,"palette":[null,"#1c46e1","#082694","#04103b"],"data":[11,0,1,85,1,170,5,0,1,5,1,106,1,171,1,240,4,0,1,86,1,170,1,175,1,255,3,0,1,1,1,106,1,170,1,255,1,245,1,128,2,0,1,10,1,170,1,191,1,255,1,214,1,160,2,0,1,42,1,170,2,255,1,90,1,188,2,0,1,170,1,191,1,255,1,253,1,107,1,255,1,0,1,2,1,175,2,255,1,213,1,175,1,255,1,64,1,3,2,255,1,245,1,86,1,255,1,253,1,128,1,15,2,255,1,213,1,107,1,255,1,246,1,240,1,15,1,255,1,245,1,86,1,191,1,255,1,91,1,240,1,63,1,253,1,85,1,170,1,255,1,253,1,111,1,252,1,63,1,85,1,106,1,191,1,255,1,213,1,191,1,244,1,21,1,170,1,171,2,255,1,87,1,255,1,212,1,22,1,170,1,191,1,255,1,245,1,95,1,255,1,84,1,42,1,171,2,255,1,213,1,191,1,253,1,88,1,42,1,191,1,255,1,245,1,86,1,255,1,245,1,104,1,42,2,255,1,85,1,191,1,255,1,86,1,168,1,43,1,255,1,245,1,95,1,255,1,253,1,90,1,168,1,15,1,255,1,85,1,191,1,255,1,245,1,106,1,160,1,15,1,245,1,171,2,255,1,213,1,170,1,160,1,3,1,214,1,175,1,255,1,245,1,86,1,170,1,64,1,3,1,106,1,191,1,253,1,85,1,90,1,169,1,64,1,0,1,171,1,255,1,245,1,90,1,170,1,165,2,0,1,47,1,255,1,85,1,106,1,170,1,148,2,0,1,15,1,253,1,86,2,170,1,80,2,0,1,3,1,245,2,170,1,169,1,64,3,0,1,90,1,170,1,169,1,85,4,0,1,10,1,170,1,165,1,80,5,0,1,170,1,85,11,0]};
+const fire = {"w":32,"h":32,"palette":[null,"#a60c0c","#f3d015","#e18324"],"data":[37,0,1,65,4,0,1,16,1,128,1,0,1,80,1,64,3,0,1,18,1,48,1,192,1,52,1,16,2,0,2,2,1,60,1,192,1,181,1,20,2,0,1,10,1,16,2,204,1,157,1,5,2,0,1,27,1,4,1,138,1,140,1,173,1,5,1,128,1,48,1,83,1,241,1,138,1,144,1,231,1,5,1,128,1,48,1,24,1,49,1,162,1,80,1,235,1,17,1,96,1,50,1,28,1,29,1,162,1,80,1,249,1,193,1,104,1,13,1,28,1,45,1,99,1,80,1,253,1,193,1,104,1,13,1,28,1,29,1,99,1,212,1,253,1,197,1,124,1,13,1,35,1,204,1,115,1,86,1,245,1,117,1,124,1,13,1,47,1,205,1,115,1,86,1,213,1,21,1,244,1,5,1,47,1,29,1,99,1,214,1,229,1,39,1,212,1,5,1,239,1,221,1,99,1,214,1,181,1,41,1,212,1,53,1,111,1,237,1,111,1,214,1,181,1,165,1,84,1,53,1,107,1,93,1,107,1,246,1,159,1,149,1,84,1,61,1,90,1,157,1,171,1,250,1,106,1,119,1,84,1,5,1,87,1,149,1,155,1,245,1,169,1,253,1,80,1,5,1,95,1,213,1,165,1,253,1,169,1,253,1,80,1,1,1,95,1,246,1,165,1,253,1,171,1,245,1,64,1,0,1,23,1,245,1,169,1,117,1,111,1,212,2,0,1,5,1,255,1,103,1,85,1,127,1,80,2,0,1,1,1,127,1,213,1,85,1,93,1,64,3,0,1,95,3,85,4,0,1,5,2,85,1,80,5,0,2,85,11,0]};
+const mana = {"w":32,"h":32,"palette":[null,"#16042f","#b682ff","#4a1594"],"data":[11,0,2,85,5,0,1,5,2,170,1,80,4,0,1,90,1,191,1,254,1,165,3,0,1,1,1,175,2,255,1,250,1,64,2,0,1,6,1,191,1,192,1,3,1,254,1,144,2,0,1,27,1,252,1,4,1,0,1,63,1,228,2,0,1,111,1,192,1,21,1,4,1,3,1,249,1,0,1,1,1,175,1,16,1,4,1,21,1,0,1,250,1,64,1,1,1,188,1,84,1,32,1,4,1,8,1,62,1,64,1,6,1,252,1,16,1,168,1,0,1,42,1,63,1,144,1,6,1,240,1,0,1,32,1,192,1,8,1,15,1,144,1,26,1,240,1,192,1,3,1,240,1,0,1,207,1,164,1,27,1,195,1,240,1,128,1,192,1,67,1,243,1,228,1,27,1,192,1,194,1,160,1,1,1,80,1,195,1,228,1,27,1,192,1,0,1,128,2,64,1,3,1,228,1,27,1,194,1,0,1,1,1,80,1,0,1,67,1,228,1,27,1,202,1,128,1,192,1,64,1,193,1,83,1,228,1,27,1,194,1,3,1,240,1,3,1,240,1,67,1,228,1,26,1,240,1,0,1,192,1,128,1,192,1,15,1,164,1,6,1,240,1,16,1,2,1,160,1,0,1,15,1,144,1,6,1,252,1,84,1,0,1,128,1,16,1,63,1,144,1,1,1,188,1,16,1,64,1,0,1,84,1,62,1,64,1,1,1,175,1,1,1,80,2,16,1,250,1,64,1,0,1,111,1,192,1,64,1,84,1,3,1,249,2,0,1,27,1,252,1,0,1,16,1,63,1,228,2,0,1,6,1,191,1,192,1,3,1,254,1,144,2,0,1,1,1,175,2,255,1,250,1,64,3,0,1,90,1,191,1,254,1,165,4,0,1,5,2,170,1,80,5,0,2,85,11,0]};
+
+class ClipboardImageHandler{
+    static handlePaste(){
+        document.addEventListener("paste", async (e : ClipboardEvent) => {
+            const items = e.clipboardData?.items ?? [];
+            for (const item of items) {
+                if (item.type.startsWith("image/")) {
+                    const file = item.getAsFile();
+                    if(file){
+                        const img = new Image();
+                        img.onload = () => {
+                            var canvas = G.imgToCanvas(img);
+                            var palette = new Set();
+                            G.getColorMatrix(canvas,(r:any)=>{ 
+                                if(r == '#ffffff') r = null; // make as png white transparent
+                                palette.add(r)
+                            });
+                            var reduced = ColorHelper.reducePalette(Array.from(palette),3,10);
+                            // reduced = [null,"#d9a066","#663931","#000000"];
+                            var matreduced = G.getColorMatrix(canvas,(r:any)=>{ 
+                                if(r == '#ffffff') r = null;
+                                var nearest = ColorHelper.mapColorToNearest(r,reduced);
+                                // return nearest;
+                                if(nearest == reduced[0]) return 0;
+                                if(nearest == reduced[1]) return 1;
+                                if(nearest == reduced[2]) return 2;
+                                if(nearest == reduced[3]) return 3;
+                            });
+
+                            var encodedpack4 = PackedImage4.encode(reduced,matreduced);
+                            console.log('p4',PackedImage4.printable(encodedpack4));
+                            var decode = PackedImage4.decodeObj(encodedpack4);
+                            var matreducesassprite = G.colorsMatrixToSprite(decode,3,(r:any)=>r);
+                            console.log(palette);
+                            console.log(reduced);
+
+                            document.body.append(canvas);
+                            document.body.append(matreducesassprite);
+                        }
+                        img.src = URL.createObjectURL(file);
+                    }
+                    
+                }
+            }
+
+        });
+    }
+}
 class Tile{
-    frames : GameCanvasElement[];
     sprite : GameCanvasElement;
-    frame : number = 0;
     type:string;
     ods:number;
     level : number;
     size : number;
     time=0;
-    
     constructor(type : string, size:number, level : number){
         this.type = type;
         this.level = level;
         this.size = size;
-        this.frames = this.getFrames();
-        this.sprite = this.frames[0];
-        this.ods = 1;
-        this.update(0);
+        this.sprite = this.getSprite(type,size,level);
+        this.ods = this.getTileOds(type);
     }
-    getFrames(): GameCanvasElement[] {
-        var c = G.makeCanvas(this.size,this.size);
-        c.stroke('#000',4);
-        return [c];
+    getTileOds(type:string){
+        switch(type){
+            case "mana" : return 30;
+            case "fire" : case "water" : return 10;
+            case "earth" : case "wind" : return 6;
+            default : return 1;
+        }
+    }
+    getSprite(type:string,size:number,level:number){
+        var canvas = G.makeCanvas(size,size);
+        var object = mana;
+        if(type == "mana") object = mana;
+        else if(type == "water") object = water;
+        else if(type == "fire") object = fire;
+        else if(type == "wind") object = wind;
+        else if(type == "earth") object = earth;
+        var decoded = PackedImage4.decodeObj(object);
+        var innersprite = G.colorsMatrixToSprite(decoded,1,(r:any)=>{return r});
+        var color = ColorHelper.darken(object.palette[1]??"#ffffff",2);
+        var color2 = ColorHelper.darken(object.palette[1]??"#ffffff",5);
+        var levelSprite = PixelFontE.getLineShadowed(`${level}`,2,'#fff','#000');
+        canvas.fill(color);
+        canvas.ctx.drawImage(innersprite,4,4,canvas.w - 8,canvas.h - 8);
+        canvas.drawBottomCenter(levelSprite,4);
+        canvas.stroke(color2,4);
+        return canvas;
     }
     update(t=0){
         var delta = t - this.time;
         if(delta > 1000){
-            this.frame++;
-            if(this.frame >= this.frames.length) this.frame = 0;
-            this.sprite = this.frames[this.frame];
             this.time = t;
         }
-        requestAnimationFrame((t)=>this.update(t));
-    }
-}
-class ManaTile extends Tile{
-    constructor(size :number, level = 1){
-        super('mana',size,level);
-    }
-    override getFrames(){
-        var canvases : GameCanvasElement[] = [];
-        var size = this.size;
-        var level = this.level;
-        var palette = ['#bb51bb','#083e7f','#ff00ff','#794087'];
-        // var base = G.getEmojiSprite('✨',size, 1.3);
-        var palet2 = G.colorToPalette(palette[1],5,0.05);
-        var base = G.getEmojiSprite('⭐',size, 1.3);
-        var base_small = G.getEmojiSprite('⭐',size*0.8, 1.3);
-        base_small = G.fuseColor(base_small,palette[0])
-        var innerSprites = [];
-        var deg = 0;
-        for(let i in palet2){
-            deg -= 45;
-            var fused = G.fuseColor(base,palet2[i]);
-            fused.drawCentered(base_small);
-            var rotated = G.rotateCanvas(fused,deg);
-            innerSprites.push(rotated)
-        }
-        var levelSprite = PixelFontE.getLineShadowed(`${level}`,2,'#fff','#000');
-        for(let i = 0 ;i < innerSprites.length;i++){
-            var canvas1 = G.makeCanvas(size,size);
-            canvas1.fill(palette[3]);
-            canvas1.drawCentered(innerSprites[i]);
-            canvas1.drawBottomCenter(levelSprite,4);
-            canvas1.stroke(palette[2],3);
-            canvases.push(canvas1);
-        }
-        return canvases;
-    }
-}
-class WaterTile extends Tile{
-    constructor(size:number, level = 1){
-        super('water',size,level);
-    }
-    override getFrames(){
-        var canvases : GameCanvasElement[] = [];
-        var size = this.size;
-        var level = this.level;
-        var palette = ['#060c6e','#2f37b9','#242ed3','#7980f1'];
-        var levelSprite = PixelFontE.getLineShadowed(`${level}`,2,palette[2],'#000');
-        var shapeTexture1 = G.shapeTexture(size,size,'~',size/3,palette[1],10,14);
-        var shapeTexture2 = G.shapeTexture(size,size,'~',size/3,palette[1],12,16);
-        var shapeTexture3 = G.shapeTexture(size,size,'~',size/3,palette[1],14,18);
-        var circle = G.MakeCircle(size*0.3,palette[1],palette[0],2);
-        var fused1 = G.fuseImage(circle,shapeTexture1,'source-atop');
-        var fused2 = G.fuseImage(circle,shapeTexture2,'source-atop');
-        var fused3 = G.fuseImage(circle,shapeTexture3,'source-atop');
-        var innerSprites = [
-            fused1,
-            fused2,
-            fused3,
-        ]
-        for(let i = 0 ;i < innerSprites.length;i++){
-            var canvas1 = G.makeCanvas(size,size);
-            canvas1.fill(palette[3]);
-            canvas1.drawCentered(innerSprites[i]);
-            canvas1.drawBottomCenter(levelSprite,4);
-            canvas1.stroke(palette[2],3);
-            canvases.push(canvas1);
-        }
-        return canvases;
-    }
-}
-class FireTile extends Tile{
-    constructor(size :number, level = 1){
-        super('fire',size,level);
-    }
-    override getFrames(){
-        var canvases : GameCanvasElement[] = [];
-        var size = this.size;
-        var level = this.level;
-        var palette = ['#ff0000','#ffa500','#ffff00',"#7e0606"];
-        var levelSprite = PixelFontE.getLineShadowed(`${level}`,2,palette[2],'#000');
-        var innerSprites = []
-        var palet2 = G.colorToPalette(palette[1],3,0.05);
-        var base = G.getEmojiSprite('🔥',size, 1.3);
-        var base_small = G.getEmojiSprite('🔥',size*0.8, 1.3);
-        var megaSprites = palet2.map(color => G.fuseColor(base,color));
-        var miniSprites = palet2.map(color => G.fuseColor(base_small,color));
-        var innerSprites = [];
-        for(let i = 0 ; i < palet2.length;i++){
-            for(let j = 0 ; j < palet2.length;j++){
-                if(i == j) continue;
-                var canv = G.makeCanvas(size,size);
-                canv.drawCentered(megaSprites[i]);
-                canv.drawCentered(miniSprites[j]);
-                innerSprites.push(canv);
-            }
-        }
-        var levelSprite = PixelFontE.getLineShadowed(`${level}`,2,'#fff','#000');
-        for(let i = 0 ;i < innerSprites.length;i++){
-            var canvas1 = G.makeCanvas(size,size);
-            canvas1.fill(palette[0]);
-            canvas1.drawCentered(innerSprites[i]);
-            canvas1.drawBottomCenter(levelSprite,4);
-            canvas1.stroke(palette[3],3);
-            canvases.push(canvas1);
-        }
-        return canvases;
-    }
-}
-class EarthTile extends Tile{
-    constructor(size :number, level = 1){
-        super('earth',size,level);
-    }
-    override getFrames(){
-        var canvases : GameCanvasElement[] = [];
-        var size = this.size;
-        var level = this.level;
-        var palette = ['#cb8c11','#946002','#64570b',"#a52a2a"];
-        var levelSprite = PixelFontE.getLineShadowed(`${level}`,2,palette[2],'#000');
-        var innerSprites = []
-        var base = G.getEmojiSprite('🪨',size, 1.3);
-        base = G.fuseColor(base,palette[1]);
-        var innerSprites = [];
-        for(let i = 0 ; i < 2 ; i++){
-            var canv = G.makeCanvas(size,size);
-            var x = canv.w/2 - base.w/2;
-            var y = canv.h/2 - base.h/2;
-            if(i %2 == 0){
-                x += 2;
-                y -= 2;
-            }
-            else{
-                x -= 2;
-                y += 2;
-            }
-            canv.ctx.drawImage(base,x,y);
-            innerSprites.push(canv);
-        }
-        var levelSprite = PixelFontE.getLineShadowed(`${level}`,2,'#fff','#000');
-        for(let i = 0 ;i < innerSprites.length;i++){
-            var canvas1 = G.makeCanvas(size,size);
-            canvas1.fill(palette[0]);
-            canvas1.drawCentered(innerSprites[i]);
-            canvas1.drawBottomCenter(levelSprite,4);
-            canvas1.stroke(palette[2],3);
-            canvases.push(canvas1);
-        }
-        return canvases;
-    }
-}
-class WindTile extends Tile{
-    constructor(size :number, level = 1){
-        super('wind',size,level);
-    }
-    override getFrames(){
-        var canvases : GameCanvasElement[] = [];
-        var size = this.size;
-        var level = this.level;
-        var palette = ['#59fff6','#0faba3','#07625d','#86dad5'];
-        var levelSprite = PixelFontE.getLineShadowed(`${level}`,2,palette[2],'#000');
-        var shapeTexture1 = G.shapeTexture(size,size,')',size/2,palette[1],size/8,size/2+2);
-        var shapeTexture2 = G.shapeTexture(size,size,')',size/2,palette[1],size/6,size/2+2);
-        var shapeTexture3 = G.shapeTexture(size,size,')',size/2,palette[1],size/5,size/2+2);
-        var circle = G.MakeCircle(size*0.3,palette[1],palette[0],2);
-        var fused1 = G.fuseImage(circle,shapeTexture1,'source-atop');
-        var fused2 = G.fuseImage(circle,shapeTexture2,'source-atop');
-        var fused3 = G.fuseImage(circle,shapeTexture3,'source-atop');
-        var innerSprites = [
-            fused1,
-            fused2,
-            fused3,
-        ]
-        for(let i = 0 ;i < innerSprites.length;i++){
-            var canvas1 = G.makeCanvas(size,size);
-            canvas1.fill(palette[3]);
-            canvas1.drawCentered(innerSprites[i]);
-            canvas1.drawBottomCenter(levelSprite,4);
-            canvas1.stroke(palette[2],3);
-            canvases.push(canvas1);
-        }
-        return canvases;
     }
 }
 class MergeTile{
     center:Point;
     item : Tile;
-    constructor(center:Point,item : Tile){
+    loc:{r:number,c:number}
+    v:string;
+    constructor(center:Point,item : Tile,loc : {r:number,c:number}){
         this.center = center;
         this.item = item;
+        this.loc = loc;
+        this.v = item.type[0];
     }
     type(){
         return this.item.type;
@@ -256,11 +150,13 @@ class Merge1124{
     y=0;
     board : MergeTile[][];
     margin : {x:number,y : number}
+    pickElemental:()=> Tile;
     constructor(w : number,h : number,tilesize : number,pool : any[]){
         this.w=w;
         this.h=h;
         this.tilesize=tilesize;
         this.pool = pool;
+        this.pickElemental = G.createPicker<Tile>(this.pool);
         this.config = {
             cols : Math.floor(this.w/this.tilesize - 2),
             rows : Math.floor(this.h/this.tilesize - 2),
@@ -285,23 +181,118 @@ class Merge1124{
         }
     }
     newBoard(rows:number,cols:number, mx : number, my:number){
-        const pickElemental = G.createPicker<Tile>(this.pool);
         var grid : any = [];
-        var cx = this.tilesize/2 + mx/2;
-        var cy = this.tilesize/2 + my/2;
+        const stepX = this.tilesize + this.margin.x;
+        const stepY = this.tilesize + this.margin.y;
+        const startX = this.tilesize / 2 + this.margin.x / 2;
+        const startY = this.tilesize / 2 + this.margin.y / 2;
+
         for(let i = 0; i < rows;i++){
             grid[i] = [];
             for(let j = 0; j < cols;j++){
-                var center = new Point({x: cx,y:cy});
-                var tile = pickElemental();
-                var mergetile = new MergeTile(center,tile);
+                var center = new Point({x: startX + j * stepX,y:startY + i * stepY});
+                var tile = this.pickElemental();
+                var mergetile = new MergeTile(center,tile,{r:i,c:j});
                 grid[i][j] = mergetile;
-                cx += this.tilesize + mx;
             }
-            cx = cx = this.tilesize/2 + mx/2;
-            cy += this.tilesize + my;
         }
         return grid;
+    }
+    updateTile(mt : any,level : number){
+        var newTile = new Tile(mt.name,this.tilesize,level);
+        var r = mt.loc.r;
+        var c = mt.loc.c;
+        this.board[r][c] = this.getNewEntity(r,c,newTile);
+    }
+    checkZeroFct(r:number,c:number){
+
+    }
+    resetTiles(centers : MergeTile[]){
+        centers.forEach((x:any)=> {
+            this.board[x.loc.r][x.loc.c].v = ' ';
+        });
+        this.board = this.applyGravity(this.board,this.config.rows,this.config.cols,
+            (go : any) => go.v == ' ',(r = 0,c = 0) => this.getNewEntity(r,c));
+        this.resetGridCenters(this.board);
+    }
+    resetGridCenters(grid:any[][]){
+        const stepX = this.tilesize + this.margin.x;
+        const stepY = this.tilesize + this.margin.y;
+        const startX = this.tilesize / 2 + this.margin.x / 2;
+        const startY = this.tilesize / 2 + this.margin.y / 2;
+        for(let i = 0 ; i < grid.length ; i++){
+            for(let j = 0 ; j < grid[i].length ; j++){
+                var center = new Point({x: startX + j * stepX,y:startY + i * stepY});
+                grid[i][j].center = center;
+                grid[i][j].r = i;
+                grid[i][j].c = j;
+            }
+        }
+    }
+    getPt(r = 0 , c = 0){
+        const stepX = this.tilesize + this.margin.x;
+        const stepY = this.tilesize + this.margin.y;
+        const startX = this.tilesize / 2 + this.margin.x / 2;
+        const startY = this.tilesize / 2 + this.margin.y / 2;
+        const x = startX + c * stepX;
+        const y = startY + r * stepY;
+        return new Point({ x, y });
+    }
+    getNewEntity(r = 0 , c = 0, _tile : Tile | null = null){
+        var tile = _tile ?? this.pickElemental();
+        return new MergeTile(this.getPt(r,c),tile,{r:r,c:c});
+    }
+    applyGravity(grid : MergeTile[][],r =0 ,c = 0, checkZeroFct : any, newEntity : any, inverse  = true) : any{
+        if(grid.flat().find(x=> checkZeroFct(x)) == null) return grid;
+        for (let col = 0; col < c; col++) {
+            const nonMoving = [];
+            for (let row = 0; row < r; row++) {
+                if (!checkZeroFct(grid[row][col])) {
+                    nonMoving.push(grid[row][col]);
+                }
+            }
+            if (inverse) {
+                for (let row = 0; row < r; row++) {
+                    grid[row][col] = row >= r - nonMoving.length 
+                        ? nonMoving[row - (r - nonMoving.length)] 
+                        : newEntity(row, col);
+                }
+            } else {
+                for (let row = 0; row < r; row++) {
+                    grid[row][col] = row < nonMoving.length ? nonMoving[row] : newEntity(row, col);
+                }
+            }
+        }
+        return this.applyGravity(grid,r,c, checkZeroFct, newEntity, inverse);
+    }
+}
+class ElementAttck{
+    sprite:GameCanvasElement;
+    center:Point;
+    speed:number;
+    level:number;
+    constructor(type : string,level : number,center:Point){
+        this.sprite = this.getSprite(type);
+        this.center = G.Point(center);
+        this.level = level;
+        this.speed = this.level * 4;
+    }
+    getSprite(type:string){
+        var object = mana;
+        if(type == "mana") object = mana;
+        else if(type == "water") object = water;
+        else if(type == "fire") object = fire;
+        else if(type == "wind") object = wind;
+        else if(type == "earth") object = earth;
+        var decoded = PackedImage4.decodeObj(object);
+        var innersprite = G.colorsMatrixToSprite(decoded,1,(r:any)=>{return r});
+        return innersprite;
+    }
+    update(t=0){
+        this.center.x += this.speed;
+    }
+    draw(canvas:GameCanvasElement){
+        canvas.drawRelative(this.sprite,this.center);
     }
 }
 export default class CombatScene{
@@ -320,53 +311,59 @@ export default class CombatScene{
     };
     markedCenters:Collection;
     canvasbglayers : GameCanvasElement [] = [];
+    cat : Cat;
     constructor(game:Game){
         this.game = game;
         var w = game.canvasDim.w;
         var h = game.canvasDim.h;
         this.markedCenters = new Collection();
         this.canvas = G.makeCanvas(w,h);
+        this.cat = new Cat();
         this.config = {
             w : w,
             h : h,
-            sceneheight:300,
+            sceneheight:400,
             tilesize : 96
         }
         var pool : any[] = [
-            new ManaTile(this.config.tilesize,1),
-            new WaterTile(this.config.tilesize,1),
-            new FireTile(this.config.tilesize,1),
-            new EarthTile(this.config.tilesize,1),
-            new WindTile(this.config.tilesize,1),
+            new Tile("mana",this.config.tilesize,1),
+            new Tile("water",this.config.tilesize,1),
+            new Tile("fire",this.config.tilesize,1),
+            new Tile("earth",this.config.tilesize,1),
+            new Tile("wind",this.config.tilesize,1),
         ];
         this.mergebox = new Merge1124(
             this.config.w, this.config.h - this.config.sceneheight, this.config.tilesize, pool
         )
-        // document.body.innerHTML = '';
-        // pool.forEach(t=>{
-        //     t.frames.forEach( (f : GameCanvasElement) => document.body.append(f));
-        // })
+        // ClipboardImageHandler.handlePaste();
+        // Tile.GetSprites();
         // return;
         game.resetBody();
         var gardem = SpriteEngine.GenFlowerGarden(w,h,w);
+        var dirtpath = SpriteEngine.GenDirtTile(w,this.config.tilesize*1.2);
+        gardem.ctx.drawImage(dirtpath,0,this.config.sceneheight - this.config.tilesize*1.2);
         this.canvasbglayers.push(gardem);
 
         game.body.append(this.canvas);
-        this.canvas.addEventListener('mousedown', () =>             this.handleStart());
+        this.canvas.addEventListener('mousedown', (e:any) =>             this.handleStart(e));
         this.canvas.addEventListener('mouseup', (e: any) =>         this.handleEnd(e));
         this.canvas.addEventListener('mousemove', (e: any) =>       this.handleMove(e));
         // Touch events
-        this.canvas.addEventListener('touchstart', () =>            this.handleStart());
+        this.canvas.addEventListener('touchstart', (e:any) =>            this.handleStart(e));
         this.canvas.addEventListener('touchend', (e: any) =>        this.handleEnd(e));
         this.canvas.addEventListener('touchmove', (e: any) =>       this.handleMove(e));
 
         this.update(0);
         // document.body.append(this.mergebox.canvas);
     }
-    handleStart(){
+    handleStart(e:any){
         this.mergeGestures.mergestart = true;
+        this.handleMove(e);
     }
     handleEnd(e:any){
+        console.log(this.markedCenters);
+        var result = this.getResultActionFromCollection();
+        console.log(result);
         this.mergeGestures.mergestart = false;
         this.markedCenters = new Collection();
     }
@@ -374,7 +371,7 @@ export default class CombatScene{
         if(!this.mergeGestures.mergestart) return;
          G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt : any)=>{
             // var pointpos = new Point(pt);
-            var pointpos = G.Point({x: pt.x , y: pt.y-300 });
+            var pointpos = G.Point({x: pt.x , y: pt.y-this.config.sceneheight });
             var diagonaldist = (this.mergebox.margin.x + this.mergebox.margin.y) + this.config.tilesize * 1.5;
             var gridobj = this.mergebox.board.flat().find(o => o.center.distance(pointpos) < this.config.tilesize/2);
             if(gridobj != undefined){
@@ -384,7 +381,8 @@ export default class CombatScene{
                 var collectionItem = {
                     center : gridobj.center,
                     name : gridobj.item.type,
-                    level : gridobj.item.level
+                    level : gridobj.item.level,
+                    loc : gridobj.loc,
                 }
                 // adding first item in the merge sequence
                 if(lastinsert == null || lastinsert == undefined){
@@ -403,11 +401,44 @@ export default class CombatScene{
                 else if(NormalizedCenter.distance(lastinsert.center) < diagonaldist ){
                     this.handleNewNode(collectionItem);
                 }
+                this.getPresentedResultSprite();
             }
         });
     }
     getResultActionFromCollection(){
         var list = this.markedCenters.getAll();
+        if(list.length < 2) return null;
+        var out = list.map(x=> x.name[0]).join('');
+        var outset = new Set(list.map(x=> x.name));
+        var levels = list.map(x=> x.level);
+        if(outset.size == 1){
+            var beforePrev = 0;
+            var prevLevel = levels[0];
+            var result = levels[0];
+            for(let i = 1 ; i < levels.length;i++){
+                var current = levels[i];
+                if(current == prevLevel){
+                    if(current == beforePrev){
+                        result += 2;
+                    }
+                    else{
+                        result += 1;
+                    }
+                }
+                else if(i > 3){
+                    result += 1;
+                }
+                beforePrev = prevLevel;
+                prevLevel = current;
+            }
+            console.log(result);
+            //add new tile and reset other ones
+            this.addTile(result);
+            return "new";
+        }
+        else{
+            return "attack";
+        }
         /* 
         m mana
         e element
@@ -422,10 +453,20 @@ export default class CombatScene{
 
 
     }
+    addTile(level = 1){
+        var last = this.markedCenters.objects.pop();
+        this.mergebox.updateTile(last,level);
+        this.mergebox.resetTiles(this.markedCenters.objects);
+    }
     getPresentedResultSprite(){
         var canvas = G.makeCanvas(this.config.tilesize,this.config.tilesize);
         var list = this.markedCenters.getAll();
         if(list.length < 2) return canvas;
+
+        var out = list.map(x=> x.name[0]).join('');
+        var levels = list.map(x=> x.level);
+        console.log(out,levels);
+        //handle first 2-3 alone
         if(list.length == 2){
             
         }
@@ -446,8 +487,8 @@ export default class CombatScene{
                 this.markedCenters.add(newnode);
             }
         }
-        // if starting from mana
-        if(this.markedCenters.getFirst().name == "mana"){
+        // if last is mana
+        if(lastItem.name == "mana"){
             this.markedCenters.add(newnode);
         }
         
@@ -456,8 +497,8 @@ export default class CombatScene{
     {
         this.mergebox.update(t);
         var ctx = this.canvas.ctx;
-
         this.canvasbglayers.forEach(layer=> ctx.drawImage(layer,0,0));
+        this.canvas.drawRelative(this.cat.sprite2x,G.Point({x:this.config.tilesize,y:this.config.sceneheight - 32}))
         this.canvas.ctx.drawImage(this.getMarkedLinesCanvas(),0,this.config.sceneheight);
         this.canvas.ctx.drawImage(this.mergebox.canvas,0,this.config.sceneheight);
         requestAnimationFrame((t)=> this.update(t));
@@ -846,3 +887,4 @@ export class OldCombatScene{
         this.grid = grid;
     }
 }
+ClipboardImageHandler.handlePaste();

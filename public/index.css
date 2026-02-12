@@ -1,15 +1,15 @@
 html, body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    /* overflow: hidden; */
     /* position: fixed; */
 }
 .colors{
-    --var-fire-red :#7e0606;
-    --var-fire-orange:#ffa500;
-    --var-fire-yellow:#ffff00;
+    --var-fire-red :#ff9d3b;
+    --var-fire-orange:#e14a38;
+    --var-fire-yellow:#ff863e;
 
-    --var-earth-1:#a52a2a;
+    --var-earth-1:#adabb1;
     --var-earth-2:#64570b;
     /* #cb8c11','#946002','#64570b',"#a52a2a */
     /* #7980f1','#0faba3','#07625d','#86dad5 */
