@@ -224,8 +224,7 @@ class Merge1124{
             for(let j = 0 ; j < grid[i].length ; j++){
                 var center = new Point({x: startX + j * stepX,y:startY + i * stepY});
                 grid[i][j].center = center;
-                grid[i][j].r = i;
-                grid[i][j].c = j;
+                grid[i][j].loc = {r:i,c:j};
             }
         }
     }
@@ -266,16 +265,26 @@ class Merge1124{
         return this.applyGravity(grid,r,c, checkZeroFct, newEntity, inverse);
     }
 }
+class AfterEffect{
+    center:Point;
+    constructor(center:Point){
+        this.center = center;
+    }
+}
 class ElementAttck{
     sprite:GameCanvasElement;
+    attackpwr:GameCanvasElement;
     center:Point;
     speed:number;
     level:number;
+    life:number;
     constructor(type : string,level : number,center:Point){
         this.sprite = this.getSprite(type);
+        this.attackpwr = PixelFontE.getLine(`${level}`,1,'blue');
         this.center = G.Point(center);
         this.level = level;
-        this.speed = this.level * 4;
+        this.speed = Math.max(this.level,4);
+        this.life = 64 + this.level * 8;
     }
     getSprite(type:string){
         var object = mana;
@@ -289,10 +298,71 @@ class ElementAttck{
         return innersprite;
     }
     update(t=0){
+        // this.life -= 1;
         this.center.x += this.speed;
+
+    }
+    updateAndAttack(t=0,scene:CombatScene){
+        scene.enemies.forEach(en=>{
+            console.log(en.center.distance(this.center));
+            if(en.center.distance(this.center) <= CELLSIZE/2){
+                en.life -= this.level;
+                if(en.life <= 0){
+                    scene.killcount += 1;
+                }
+                this.life = 0;
+                return;
+            }
+        })
+        // this.life -= 1;
+        this.center.x += this.speed;
+        if(this.center.x > scene.game.canvasDim.w){
+            this.life = 0;
+        }
     }
     draw(canvas:GameCanvasElement){
         canvas.drawRelative(this.sprite,this.center);
+        canvas.drawRelative(this.attackpwr,this.center);
+    }
+}
+class Enemy{
+    sprite : GameCanvasElement;
+    center:Point;
+    speed:number;
+    life : number;
+    constructor(center:Point,life = 10){
+        this.center = center;
+        this.speed = 1/3;
+        this.life  = life;
+        this.sprite = this.getSprite();
+    }
+    getSprite(){
+        return G.getEmojiSprite('🧟',CELLSIZE*2,1.3)
+    }
+    draw(canvas:GameCanvasElement){
+        canvas.drawRelative(this.sprite,this.center);
+        canvas.drawRelative(PixelFontE.getLine(`${this.life}`,2,'red'),G.Point(
+            {
+                x:this.center.x,
+                y:this.center.y - this.sprite.h/2 + 16
+            }
+        ))
+    }
+    updateAndAttack(t = 0 , scene : CombatScene){
+        if(this.center.x > scene.catLoc.x){
+            this.center.x -= this.speed;
+        }
+        else{
+            scene.gameover();
+        }
+    }
+    update(t = 0){
+        if(this.center.x > CELLSIZE){
+            this.center.x -= this.speed;
+        }
+        else{
+            //attack player
+        }
     }
 }
 export default class CombatScene{
@@ -312,13 +382,21 @@ export default class CombatScene{
     markedCenters:Collection;
     canvasbglayers : GameCanvasElement [] = [];
     cat : Cat;
+    catLoc : Point;
+    attacks : ElementAttck[];
+    enemies : Enemy[];
+    isgameover:boolean = false;
+    killcount :number = 0;
     constructor(game:Game){
         this.game = game;
+        this.attacks = [];
+        this.enemies = [];
         var w = game.canvasDim.w;
         var h = game.canvasDim.h;
         this.markedCenters = new Collection();
         this.canvas = G.makeCanvas(w,h);
         this.cat = new Cat();
+        
         this.config = {
             w : w,
             h : h,
@@ -335,6 +413,7 @@ export default class CombatScene{
         this.mergebox = new Merge1124(
             this.config.w, this.config.h - this.config.sceneheight, this.config.tilesize, pool
         )
+        this.catLoc=G.Point({x:this.config.tilesize,y:this.config.sceneheight - 32})
         // ClipboardImageHandler.handlePaste();
         // Tile.GetSprites();
         // return;
@@ -343,7 +422,6 @@ export default class CombatScene{
         var dirtpath = SpriteEngine.GenDirtTile(w,this.config.tilesize*1.2);
         gardem.ctx.drawImage(dirtpath,0,this.config.sceneheight - this.config.tilesize*1.2);
         this.canvasbglayers.push(gardem);
-
         game.body.append(this.canvas);
         this.canvas.addEventListener('mousedown', (e:any) =>             this.handleStart(e));
         this.canvas.addEventListener('mouseup', (e: any) =>         this.handleEnd(e));
@@ -355,6 +433,19 @@ export default class CombatScene{
 
         this.update(0);
         // document.body.append(this.mergebox.canvas);
+    }
+    gameover(){
+        this.isgameover = true;
+        var gameover = PixelFontE.getLineShadowed('GAME OVER',8,'red','white');
+        var canvas2 = G.imgToCanvas(this.canvas);
+        for(let i = 0 ; i < canvas2.h/100 ; i++){
+            canvas2.ctx.drawImage(gameover,canvas2.w/2 - gameover.w/2,i*100);
+        }
+        this.game.body.innerHTML = '';;
+        this.game.body.append(canvas2);
+        canvas2.addEventListener('click',(e)=>{
+            (window as any).scene = new CombatScene(this.game); 
+        })
     }
     handleStart(e:any){
         this.mergeGestures.mergestart = true;
@@ -408,7 +499,6 @@ export default class CombatScene{
     getResultActionFromCollection(){
         var list = this.markedCenters.getAll();
         if(list.length < 2) return null;
-        var out = list.map(x=> x.name[0]).join('');
         var outset = new Set(list.map(x=> x.name));
         var levels = list.map(x=> x.level);
         if(outset.size == 1){
@@ -436,7 +526,9 @@ export default class CombatScene{
             this.addTile(result);
             return "new";
         }
-        else{
+        else if(outset.size == 2){
+            var result = list.map(x=> x.level).reduce((a,b,c)=>{return a+b});
+            this.addAttack(result);
             return "attack";
         }
         /* 
@@ -457,6 +549,17 @@ export default class CombatScene{
         var last = this.markedCenters.objects.pop();
         this.mergebox.updateTile(last,level);
         this.mergebox.resetTiles(this.markedCenters.objects);
+    }
+    addAttack(level:number){
+        var type = this.markedCenters.getLast().type;
+        this.mergebox.resetTiles(this.markedCenters.objects);
+        this.attacks.push(
+            new ElementAttck(type,level,G.Point({
+                x: this.catLoc.x,
+                y: this.catLoc.y
+            }
+            ))
+        )
     }
     getPresentedResultSprite(){
         var canvas = G.makeCanvas(this.config.tilesize,this.config.tilesize);
@@ -487,18 +590,32 @@ export default class CombatScene{
                 this.markedCenters.add(newnode);
             }
         }
-        // if last is mana
-        if(lastItem.name == "mana"){
+        else if(lastItem.name == "mana"){
             this.markedCenters.add(newnode);
         }
         
     }
     update(t = 0)
     {
+        if(this.isgameover)return;
+        if(this.enemies.length == 0){
+            this.enemies.push(
+                new Enemy(G.Point({
+                    x: this.game.canvasDim.w*3 + this.catLoc.x,
+                    y: this.catLoc.y - 16
+                }),this.killcount*3)
+            )
+        }
+        this.attacks.forEach(at=>at.updateAndAttack(t,this));
+        this.enemies.forEach(at=>at.updateAndAttack(t,this));
+        this.attacks = this.attacks.filter(x=>x.life > 0);
+        this.enemies = this.enemies.filter(x=>x.life > 0);
         this.mergebox.update(t);
         var ctx = this.canvas.ctx;
         this.canvasbglayers.forEach(layer=> ctx.drawImage(layer,0,0));
-        this.canvas.drawRelative(this.cat.sprite2x,G.Point({x:this.config.tilesize,y:this.config.sceneheight - 32}))
+        this.canvas.drawRelative(this.cat.sprite2x,this.catLoc)
+        this.attacks.forEach(at=>at.draw(this.canvas));
+        this.enemies.forEach(at=>at.draw(this.canvas));
         this.canvas.ctx.drawImage(this.getMarkedLinesCanvas(),0,this.config.sceneheight);
         this.canvas.ctx.drawImage(this.mergebox.canvas,0,this.config.sceneheight);
         requestAnimationFrame((t)=> this.update(t));
@@ -523,368 +640,6 @@ export default class CombatScene{
             Canvas.drawRelative(cursorSprite,markedCentersObj[i].center);
         }
         return Canvas;
-    }
-}
-export class OldCombatScene{
-    game : Game;
-    canvasDim : {w:number,h:number};
-    w : number;
-    h : number;
-    x : number;
-    y : number;
-    rows : number;
-    cols : number;
-    currentgamecanvas : GameCanvasElement;
-    player : Player | null;
-    mob : any;
-    blocksize: number;
-    ambient : any;
-    endscenefct : any;
-    tilesize : any;
-    canvas : any;
-    isClick : any;
-    markedCenters : any;
-    roundRectS1 : any;
-    roundRectS2 : any;
-    combatlogo : any;
-    arrowSprite : any;
-    explosionsprite : any;
-    menuclickables : Clickable[];
-    playercardattrib : any;
-    mobcardattrib : any;
-    cards : CombatCard[];
-    elementals : CardElement[];
-    touchPos : any;
-    currentPointer : any;
-    grid : any[][] = [];
-    constructor(game : Game,player = null, mob = null, ambient = '' ,endscenefct : Function | null){
-        game.body.innerHTML = '';
-        this.game = game;
-        this.canvasDim = game.canvasDim;
-        this.w = this.canvasDim.w;
-        this.h = this.canvasDim.h;
-        this.currentgamecanvas = G.imgToCanvas(game.canvas);
-        this.player = player;
-        this.mob = mob;
-        this.ambient = this.getAmbient(ambient);
-        this.endscenefct = endscenefct;
-        this.blocksize = CELLSIZE*1.85;
-        this.tilesize = this.blocksize * 0.82;
-        this.canvas = G.makeCanvas(this.w,this.h);
-        game.body.append(this.canvas);
-        this.isClick = false;
-        this.markedCenters = new Collection();
-        this.roundRectS1 = G.MakeRoundedRect(this.tilesize, this.tilesize, 12.5, '#fff');
-        this.roundRectS2 = G.MakeRoundedRect(this.tilesize, this.tilesize, 12.5, '#8c8c8c');
-        this.combatlogo = G.getEmojiSprite('⚔',CELLSIZE*3,1.3,'#fff');
-        this.arrowSprite = G.getEmojiSprite('➡',this.tilesize,1.3,'#fff');
-        this.explosionsprite = G.getEmojiSprite('💥',this.tilesize,1.3,'#fff');
-        this.menuclickables = [
-            new Clickable(0,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('🚪',CELLSIZE*1.5,1.4),()=>{ endscenefct && endscenefct(this)}),
-            // new Clickable(CELLSIZE*1.5,0,CELLSIZE*1.5,CELLSIZE*1.5,G.getEmojiSprite('🎒',CELLSIZE*1.5,1.4),(e)=>{this.inventory()}),
-        ];
-        this.playercardattrib = {
-                name : 'player',
-                health : 90,
-                healthmax : 100,
-                sprite : G.magnify(Cat.extractImage(),4),
-                x : 32,
-                y : this.canvas.h/5,
-                w : CELLSIZE * 3,
-                h : CELLSIZE * 3.5,
-                color: 'gold',
-                shadow:'#fff'
-        };
-        this.mobcardattrib = {
-                name : 'target',
-                health : 33,
-                healthmax : 100,
-                sprite : G.getEmojiSprite('🧟',CELLSIZE*2,1.3),
-                x : this.canvas.w - 32 - CELLSIZE*3,
-                y : this.canvas.h/5,
-                w : CELLSIZE * 3,
-                h : CELLSIZE * 3.5,
-                color: 'gold',
-                shadow:'#fff'
-        }
-        this.cards = [
-            new CombatCard(this.playercardattrib),
-            new CombatCard(this.mobcardattrib)
-        ];
-        this.elementals = [
-            {v:'m', e:'🔮', s:this.getSprite('🔮',false), sd:this.getSprite('🔮',true) ,c:'#f00'},
-            {v:'f', e:'🔥', s:this.getSprite('🔥',false), sd:this.getSprite('🔥',true) ,c:'#f00'},
-            {v:'w', e:'💧', s:this.getSprite('💧',false), sd:this.getSprite('💧',true) ,c:'#00f'},
-            {v:'e', e:'🌱', s:this.getSprite('🌱',false), sd:this.getSprite('🌱',true) ,c:'#0a0'},
-            {v:'i', e:'🌪️', s:this.getSprite('🌪️',false), sd:this.getSprite('🌪️',true) ,c:'#aaa'},
-            {v:'z', e:'⚡', s:this.getSprite('⚡',false), sd:this.getSprite('⚡',true) ,c:'#ff0'},
-            {v:'l', e:'☀️', s:this.getSprite('☀️',false), sd:this.getSprite('☀️',true) ,c:'#ffb'},
-            {v:'d', e:'🌑', s:this.getSprite('🌑',false), sd:this.getSprite('🌑',true) ,c:'#555'},
-        ];
-        this.x = 0;
-        this.y = this.canvas.h/2;
-        this.rows = Math.floor(this.canvas.h/this.blocksize/2);
-        this.cols = Math.floor(this.canvas.w/this.blocksize);
-        this.touchPos = null;
-        this.canvas.addEventListener('mousedown', () => handleStart());
-        this.canvas.addEventListener('mouseup', (e: any) => handleEnd(e));
-        this.canvas.addEventListener('mousemove', (e: any) => handleMove(e));
-        // Touch events
-        this.canvas.addEventListener('touchstart', () => handleStart());
-        this.canvas.addEventListener('touchend', (e: any) => handleEnd(e));
-        this.canvas.addEventListener('touchmove', (e: any) => handleMove(e));
-        var handleEnd = (e :any)=>{
-            this.touchPos = null;
-            if(this.markedCenters.objects.length > 0){
-                var seq = this.markedCenters.getSequence();
-                var spell = SPELLBOOK.find(x=> x.i == seq) as Spell;
-                if(spell){
-                    if(spell.isattack){
-                            this.markedCenters.objects.forEach((x:any)=> {
-                                this.grid[x.r][x.c].val = 0;
-                            });
-                            this.grid = this.applyGravity(this.grid,this.rows,this.cols,(go :any) => go.val == 0,(r : any,c : any) => this.getNewEntity(r,c));
-                            this.resetGridCenters(this.grid);
-                            this.mobcardattrib.health -= spell.dmg;
-                            this.cards = [
-                                new CombatCard(this.playercardattrib),
-                                new CombatCard(this.mobcardattrib)
-                            ];
-                    }
-                    else{
-                        var last = this.markedCenters.getLast();
-                        this.markedCenters.objects.forEach((x:any)=> {
-                            this.grid[x.r][x.c].val = 0;
-                        });
-                        last.val = spell.r;
-                        last.sprite = this.elementals.find((x:any)=> x.v == spell.r)?.s;
-                        this.grid = this.applyGravity(this.grid,this.rows,this.cols,(go : any) => go.val == 0,(r = 0,c = 0) => this.getNewEntity(r,c));
-                        this.resetGridCenters(this.grid);
-                        this.playercardattrib.health -= 5;
-                        this.cards = [
-                            new CombatCard(this.playercardattrib),
-                            new CombatCard(this.mobcardattrib)
-                        ];
-                    }
-                }
-            }
-            this.isClick = false;
-            this.markedCenters = new Collection();
-            G.mapClick(e.touches ? e.touches[0] : e, this.canvas,(pt: any)=>{
-                this.menuclickables.forEach( (x: any)=> {if(x.handleTouchPos) x.handleTouchPos(pt)});
-            });
-        }
-        var handleStart = ()=>{
-            this.isClick = true;
-        }
-        var handleMove = (e : any)=>{
-            G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt : any)=>{
-                var pointpos = new Point(pt);
-                var gridobj = this.grid.flat().find(o => pointpos.distance(o.center) < this.blocksize/2);
-                if(gridobj != undefined){
-                    var NormalizedCenter = this.currentPointer = gridobj.center;
-                    if(this.isClick){
-                        var lastinsert = this.markedCenters.getLast();
-                        var beforelastinsert = this.markedCenters.getbeforeLast();
-                        if(lastinsert == null || lastinsert == undefined){
-                            this.markedCenters.add(gridobj);
-                        }
-                        else if(beforelastinsert != null && NormalizedCenter.distance(beforelastinsert.center) < this.blocksize/2){
-                            this.markedCenters.removeLast();
-                        }
-                        else if(NormalizedCenter.distance(lastinsert.center) < this.blocksize*1.5){
-                            this.markedCenters.add(gridobj);
-                        }
-                    }
-                }
-            });
-        }
-        this.newBoard();
-        this.update();
-    }
-    getAmbient(scene : string){
-        var canvas = G.makeCanvas(this.w,this.h);
-        if(scene == 'dungeon'){
-
-        }
-        else{
-            var gardem = SpriteEngine.GenFlowerGarden(this.w,this.h,this.w);
-            canvas.ctx.drawImage(gardem,0,0);
-            var bigTree = G.getEmojiSprite('🌳',this.w/2,1.2);
-            canvas.ctx.drawImage(bigTree,-bigTree.w/2,0);
-            canvas.ctx.drawImage(bigTree,this.w-bigTree.w/2,0);
-        }
-        
-        return G.Lightify(canvas,0.5);
-    }
-    applyGravity(grid : any[][],r =0 ,c = 0, checkZeroFct : any, newEntity : any, inverse  = true) : any{
-        if(grid.flat().find(x=> checkZeroFct(x)) == null) return grid;
-        for (let col = 0; col < c; col++) {
-            const nonMoving = [];
-            for (let row = 0; row < r; row++) {
-                if (!checkZeroFct(grid[row][col])) {
-                    nonMoving.push(grid[row][col]);
-                }
-            }
-            if (inverse) {
-                for (let row = 0; row < r; row++) {
-                    grid[row][col] = row >= r - nonMoving.length 
-                        ? nonMoving[row - (r - nonMoving.length)] 
-                        : newEntity(row, col);
-                }
-            } else {
-                for (let row = 0; row < r; row++) {
-                    grid[row][col] = row < nonMoving.length ? nonMoving[row] : newEntity(row, col);
-                }
-            }
-        }
-        return this.applyGravity(grid,r,c, checkZeroFct, newEntity, inverse);
-    }
-    resetGridCenters(grid : any[][]){
-        for(let i = 0 ; i < grid.length ; i++){
-            for(let j = 0 ; j < grid[i].length ; j++){
-                var cx = this.x + j * this.blocksize + this.blocksize/2;
-                var cy = this.y + i * this.blocksize + this.blocksize/2;
-                var center = new Point({x: cx,y:cy});
-                grid[i][j].center = center;
-                grid[i][j].r = i;
-                grid[i][j].c = j;
-            }
-        }
-    }
-    getNewEntity(r = 0,c = 0){
-        var cx = this.x + r * this.blocksize + this.blocksize/2;
-        var cy = this.y + c * this.blocksize + this.blocksize/2;
-        var center = new Point({x: cx,y:cy});
-        var randomval = this.elementals[G.randInt(0,this.elementals.length)]
-        return {
-            center : center,
-            val : randomval.v,
-            sprite: randomval.s
-        };
-    }
-    getGussingWordSprite(){
-        var sequence = this.markedCenters.getSequence();
-        var w = this.tilesize;
-        var h = this.tilesize;
-        if(sequence == ' '){
-            return G.makeCanvas();
-        }
-        var sprites : any= {}; 
-        this.elementals.forEach(x=> sprites[x.v] = x.s);
-        var spell = SPELLBOOK.find(x=> x.i == sequence);
-        if(spell){
-            var canvas = G.makeCanvas(sequence.length * w + w*2,h);
-            canvas.fill('green');
-            var cx = 0;
-            for(let i = 0; i < sequence.length; i++){
-                var c = sequence[i];
-                if(sprites[c]){
-                    canvas.ctx.drawImage(sprites[c],cx,0);    
-                }
-                cx += w;
-            }
-            if(spell.dmg){
-                canvas.ctx.drawImage(this.arrowSprite,cx,0);cx += w;
-                var s2 = G.fuseImage(this.explosionsprite,sprites[spell.r],'source-atop');
-                canvas.ctx.drawImage(s2,cx,0);cx += w;
-            }
-            else{
-                canvas.ctx.drawImage(this.arrowSprite,cx,0);cx += w;
-                canvas.ctx.drawImage(sprites[spell.r],cx,0);cx += w;
-            }
-            return canvas;
-        }
-        else{
-            var canvas = G.makeCanvas(sequence.length * w,h);
-            canvas.fill('red');
-            var cx = 0;
-            for(let i = 0; i < sequence.length; i++){
-                var c = sequence[i];
-                if(sprites[c]){
-                    canvas.ctx.drawImage(sprites[c],cx,0);    
-                }
-                cx += w;
-            }
-            return canvas;
-        }
-    }
-    getSprite(v = ' ',light = false){
-        var emojisprt = G.getEmojiSprite(v,this.tilesize,1.3);
-        if(light){
-            return G.fuseImage(this.roundRectS1,emojisprt);
-        }
-        else{
-            return G.fuseImage(this.roundRectS2,emojisprt);
-        }
-    }
-    update(){
-        if(this.mobcardattrib.health <= 0){
-            this.endscenefct(this);
-            return;
-        }
-        var ctx = this.canvas.ctx;
-        this.canvas.fill('#000');
-        ctx.drawImage(this.ambient,0,0);
-        ctx.fillStyle = '#fff';
-        ctx.drawImage(this.combatlogo,this.canvas.w/2-this.combatlogo.w/2,this.canvas.h/5 - this.combatlogo.h);
-        var markedCentersObj = this.markedCenters.getAll();
-        if(markedCentersObj.length > 1){
-            var ts1 = this.getGussingWordSprite();
-            ctx.drawImage(ts1,
-                this.x + this.w/2 - ts1.w/2,
-                this.y-this.blocksize
-            );
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = this.blocksize/6;
-            ctx.beginPath();
-            ctx.moveTo(markedCentersObj[0].center.x,markedCentersObj[0].center.y);
-            for(let i = 1;i < markedCentersObj.length;i++){
-                ctx.lineTo(markedCentersObj[i].center.x,markedCentersObj[i].center.y);
-            }
-            ctx.stroke();
-        }
-        for(let i = 0 ; i < this.rows ;i++){
-            for(let j = 0 ; j < this.cols ;j++){
-                var gobj = this.grid[i][j];
-                var light = false;
-                if(((i % 2 == 0 || j %2 == 0) && !(i % 2 == 0 && j %2 == 0) )){
-                    light = true;
-                }
-                var elem = this.elementals.find(x=>x.v == gobj.val);
-                if(elem){
-                    var sprite = light ? elem.sd : elem.s;
-                    var cx = gobj.center.x - sprite.w/2;
-                    var cy = gobj.center.y - sprite.h/2;
-                    ctx.drawImage(sprite,cx,cy);
-                }
-            }
-        }
-        this.cards.forEach(x=> x.draw(ctx));
-        this.menuclickables.forEach(x=> x.draw(this.canvas.ctx));
-        requestAnimationFrame(()=>this.update());
-    }
-    newBoard(){
-        this.currentPointer = {x:-Infinity,y:-Infinity};
-        this.markedCenters = new Collection();
-        var grid : any = [];
-        for(let i = 0; i < this.rows;i++){
-            grid[i] = [];
-            for(let j = 0; j < this.cols;j++){
-                var cx = this.x + j * this.blocksize + this.blocksize/2;
-                var cy = this.y + i * this.blocksize + this.blocksize/2;
-                var center = new Point({x: cx,y:cy});
-                var randomval = this.elementals[G.randInt(0,this.elementals.length)]
-                grid[i][j] = {
-                    r:i,
-                    c:j,
-                    center : center,
-                    val : randomval.v,
-                    sprite: randomval.s
-                };
-            }
-        }
-        this.grid = grid;
     }
 }
 ClipboardImageHandler.handlePaste();
