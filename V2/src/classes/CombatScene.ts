@@ -304,11 +304,10 @@ class ElementAttck{
     }
     updateAndAttack(t=0,scene:CombatScene){
         scene.enemies.forEach(en=>{
-            console.log(en.center.distance(this.center));
             if(en.center.distance(this.center) <= CELLSIZE/2){
                 en.life -= this.level;
                 if(en.life <= 0){
-                    scene.killcount += 1;
+                    scene.wave += 1;
                 }
                 this.life = 0;
                 return;
@@ -386,7 +385,7 @@ export default class CombatScene{
     attacks : ElementAttck[];
     enemies : Enemy[];
     isgameover:boolean = false;
-    killcount :number = 0;
+    wave :number = 1;
     constructor(game:Game){
         this.game = game;
         this.attacks = [];
@@ -452,9 +451,7 @@ export default class CombatScene{
         this.handleMove(e);
     }
     handleEnd(e:any){
-        console.log(this.markedCenters);
         var result = this.getResultActionFromCollection();
-        console.log(result);
         this.mergeGestures.mergestart = false;
         this.markedCenters = new Collection();
     }
@@ -478,7 +475,6 @@ export default class CombatScene{
                 // adding first item in the merge sequence
                 if(lastinsert == null || lastinsert == undefined){
                     this.markedCenters.add(collectionItem);
-                    console.log('add1',this.markedCenters);
                 }
                 // are we still in same tile?
                 else if(NormalizedCenter.distance(lastinsert.center) == 0){
@@ -521,7 +517,6 @@ export default class CombatScene{
                 beforePrev = prevLevel;
                 prevLevel = current;
             }
-            console.log(result);
             //add new tile and reset other ones
             this.addTile(result);
             return "new";
@@ -551,7 +546,7 @@ export default class CombatScene{
         this.mergebox.resetTiles(this.markedCenters.objects);
     }
     addAttack(level:number){
-        var type = this.markedCenters.getLast().type;
+        var type = this.markedCenters.getLast().name;
         this.mergebox.resetTiles(this.markedCenters.objects);
         this.attacks.push(
             new ElementAttck(type,level,G.Point({
@@ -568,7 +563,6 @@ export default class CombatScene{
 
         var out = list.map(x=> x.name[0]).join('');
         var levels = list.map(x=> x.level);
-        console.log(out,levels);
         //handle first 2-3 alone
         if(list.length == 2){
             
@@ -601,9 +595,9 @@ export default class CombatScene{
         if(this.enemies.length == 0){
             this.enemies.push(
                 new Enemy(G.Point({
-                    x: this.game.canvasDim.w*3 + this.catLoc.x,
+                    x: this.game.canvasDim.w,
                     y: this.catLoc.y - 16
-                }),this.killcount*3)
+                }),this.wave*3)
             )
         }
         this.attacks.forEach(at=>at.updateAndAttack(t,this));
