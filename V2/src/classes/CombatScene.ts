@@ -256,12 +256,13 @@ class EnemyWave{
         var delta = t - this.time;
         if(this.enemies.length == 0) delta = this.spawnInterval;
         if(delta > this.spawnInterval ) return;
-        for(let i = 0 ; i < 2 + this.difficulity ; i++){
+        for(let i = 0 ; i < this.difficulity*2 ; i++){
             var enemy = new Slime(G.Point({
-                x: this.center.x + CELLSIZE/2,
+                x: this.center.x + CELLSIZE*i,
                 y: this.center.y
             }),this.difficulity);
             this.enemies.push(enemy);
+            console.log("spawning");
             this.countSpawned += 1;
             if(this.countSpawned >= this.countToSpawn) break;
         }
