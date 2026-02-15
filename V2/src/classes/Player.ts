@@ -1,110 +1,73 @@
-import Game from "../game/game";
+import G from "../util/G";
+import MergeCalculator from "../util/MergeCalculator";
+import PixelFontE from "../util/PixelFontE";
 import Cat from "./Cat";
 import { GameCanvasElement } from "./interface";
 import Point from "./Point";
-import { CELLSIZE } from "../util/const";
-import G from "../util/G";
-import { GameMap } from "./Map";
 
 export default class Player{
-    game: Game;
-    xp : number;
-    level : number;
-    spellpower : any;
-    speed : number;
-    visibility : number;
-    cat : Cat;
-    catIdleAnimation : GameCanvasElement[];
-    catWalkAnimation : GameCanvasElement[];
-    animation : any;
-    center:Point;
-    pos:Point;
-    sprite:GameCanvasElement;
-    moving:boolean;
-    destination:Point;
-    pathplan: Point[];
-    keys:any;
-    constructor(game : Game){
-        this.game = game;
-        this.xp = 0;
-        this.level = 0;
-        this.spellpower = [
-            {k: 'm', e:'🔮', v:1},
-            {k: 'f', e:'🔥', v:1},
-            {k: 'w', e:'💧', v:1},
-            {k: 'e', e:'🌱', v:1},
-            {k: 'i', e:'🌪️', v:1},
-            {k: 'z', e:'⚡', v:1},
-            {k: 'l', e:'☀️', v:1},
-            {k: 'd', e:'🌑', v:1},
-        ];
-        this.speed = 2;
-        this.visibility = CELLSIZE * 4;
-        this.cat = new Cat();
-        this.catIdleAnimation = this.cat.IdleAnimation();
-        this.catWalkAnimation = this.cat.WalkingAnimation();
-        this.animation = {
-            framerate : 8,
-            frame : 0,
-            spriteindex : 0,
-            spritesheet : this.catIdleAnimation
+    sprite : GameCanvasElement;
+    statSprite : GameCanvasElement;
+    life : number = 20;
+    maxLife : number = 20;
+    mana :number = 100;
+    maxMAna : number = 100;
+    manaPerOrb : number = 1;
+    healthPerHeart: number = 1;
+    constructor(){
+        this.sprite = Cat.extractImageX(2);
+        this.statSprite = this.getStatSprite();
+    }
+    CanUseMana(amount:number){
+        return this.mana >= amount;
+    }
+    UseHealth(amount:number){
+        if(this.life >= amount){
+            this.life -= amount;
+            this.updateStatSprite();
+            return true;
         }
-        this.center = new Point({x:3*CELLSIZE-CELLSIZE/2,y:5*CELLSIZE-CELLSIZE/2});
-        this.pos = G.Point(this.center);
-        this.sprite = this.catIdleAnimation[0];
-        this.moving = false;
-        this.destination = G.Point(this.center);
-        this.pathplan = [];
+        return false;
+    }
+    UseMana(amount:number){
+        if(this.mana >= amount){
+            this.mana -= amount;
+            this.updateStatSprite();
+            return true;
+        }
+        return false;
+    }
+    AddMana(orbcount:number){
+        var gain = MergeCalculator.calculateGain(orbcount) * this.manaPerOrb;
+        this.mana += gain;
+        if(this.mana > this.maxMAna) this.mana = this.maxMAna;
+        this.updateStatSprite();
+    }
+    AddHealth(heartCount: number){
+        var gain = MergeCalculator.calculateGain(heartCount) * this.healthPerHeart;
+        this.life += gain;
+        if(this.life > this.maxLife) this.life = this.maxLife;
+        this.updateStatSprite();
+    }
+    getStatSprite(){
+        var canvas = G.makeCanvas(400,8*3*2);
+        // canvas.fill('#000');
+        var HPsprt = PixelFontE.getLineShadowed(`HP`,3,'#f00','#000');
+        var MPsprt = PixelFontE.getLineShadowed(`MP`,3,'#0ff','#000');
+        canvas.ctx.drawImage(HPsprt,0,0);
+        canvas.ctx.drawImage(MPsprt,0,8*3);
+        canvas.ctx.fillStyle = '#f00';
+        var hpasDist = (canvas.w - MPsprt.w) * this.life/this.maxLife; 
+        var mpasDist = (canvas.w - MPsprt.w) * this.mana/this.maxMAna; 
+        canvas.ctx.fillRect(HPsprt.w, 0,    hpasDist,HPsprt.h);
+        canvas.ctx.fillStyle = '#0ff';
+        canvas.ctx.fillRect(HPsprt.w, 8*3,  mpasDist,MPsprt.h);       
+        return canvas;
+    }
+    updateStatSprite(){
+        this.statSprite = this.getStatSprite();
     }
     update(){
-        this.animation.spritesheet = this.moving ? this.catWalkAnimation : this.catIdleAnimation;
-        this.animation.frame++;
-        if(this.animation.frame >= this.animation.framerate){
-            if(this.animation.spriteindex >= this.animation.spritesheet.length) this.animation.spriteindex = 0;
-            this.sprite = this.animation.spritesheet[this.animation.spriteindex];
-            this.animation.spriteindex++;
-            this.animation.frame = 0;
-        }
-        if(this.destination.distance(this.center) >= this.speed){
-            this.center.moveToward(this.destination,this.speed);
-        }
-        else{
-            this.center = G.Point(this.destination);
-            this.moving = false;
-        }
-        if(this.destination.distance(this.center) == 0 && this.pathplan.length > 0){
-            var dest = this.pathplan.shift();
-            this.destination = G.Point(dest);
-            this.moving = true;
-        }
-    }
-    draw(ctx : CanvasRenderingContext2D){
-        ctx.drawImage(this.sprite,
-            this.center.x - this.sprite.w/2,
-            this.center.y - this.sprite.h/2
-        );
-    }
-    getCameraStartXY(){
-        var startX = Math.max(0,this.center.x - this.game.canvasDim.w / 2);
-        var startY = Math.max(0,this.center.y - this.game.canvasDim.h / 2);
-        return {x:startX,y:startY};
-    }
-    handleTouchPos(pos : Point){
-        if(pos.y < CELLSIZE) return;
-        var cameraXY = this.getCameraStartXY();
-        var indexIJ = {
-            i : Math.floor(G.NormGrid(cameraXY.x + pos.x,CELLSIZE) / CELLSIZE),
-            j : Math.floor(G.NormGrid(cameraXY.y + pos.y,CELLSIZE) / CELLSIZE),
-        }
-        if(this.moving == false){
-            // var gamemap = this.game.gamemap as GameMap;
-            // if(!gamemap.isObstacle(indexIJ)){
-            //     var origin = {
-            //         i : Math.floor(this.center.x/CELLSIZE),
-            //         j : Math.floor(this.center.y/CELLSIZE),
-            //     }
-            //     this.pathplan = gamemap.findPathNormPt(origin,indexIJ);
-            // }
-        }
+        
     }
 }

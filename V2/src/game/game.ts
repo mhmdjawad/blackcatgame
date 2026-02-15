@@ -3,8 +3,9 @@ import G from "../util/G";
 import { GameEngine } from "../classes/GameEngine";
 import SpriteEngine from "../util/SpriteEngine";
 import PixelFontE from "../util/PixelFontE";
-import Cat from "../classes/Cat";
 import CombatScene from "../classes/CombatScene";
+import GameStorage from "../storage/gamestoage";
+import Player from "../classes/Player";
 class Game extends GameEngine{
     canvasDim : {w:number,h:number};
     spriteEngine : SpriteEngine;
@@ -18,11 +19,13 @@ class Game extends GameEngine{
         this.canvas = G.makeCanvas(this.canvasDim.w,this.canvasDim.h);
         this.spriteEngine = new SpriteEngine(null);
         this.objects = [];
-        this.practiceCombat();
+        new CombatScene(this);
         return;
     }
-    practiceCombat(){
-        new CombatScene(this);
+    getPlayer() : Player {
+        var player = new Player();
+        return player;
+        // return GameStorage.getUser();
     }
     mainScene(){
         this.resetBody();
@@ -59,35 +62,10 @@ class Game extends GameEngine{
         this.body.innerHTML = '';
         this.body.appendChild(this.canvas);
         this.body.appendChild(this.helpdom);
-        this.objects = [
-        ]
+        this.objects = []
         this.body.innerHTML = '';
         this.body.appendChild(this.canvas);
         this.body.appendChild(this.helpdom);
-        this.canvas.addEventListener('mousedown', (e) => handleStart(e));
-        this.canvas.addEventListener('mouseup', () => handleEnd());
-        this.canvas.addEventListener('mousemove', (e) => handleMove(e));
-        // Touch events
-        this.canvas.addEventListener('touchstart', (e) => handleStart(e));
-        this.canvas.addEventListener('touchend', () => handleEnd());
-        this.canvas.addEventListener('touchmove', (e) => handleMove(e));
-        var handleEnd =()=>{}
-        var handleStart = (e : any)=>{
-            G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt: any)=>{
-                var x = pt.x;
-                var y = pt.y;
-                // this.touchPos = { x: x, y: y };
-            });
-        }
-        var handleMove = (e: any)=>{
-            // if (this.touchPos) {
-            //     G.mapClick(e.touches ? e.touches[0] : e,this.canvas,(pt: any)=>{
-            //         var x = pt.x;
-            //         var y = pt.y;
-            //         this.touchPos = { x: x, y: y };
-            //     });
-            // }
-        }
         return;
     }
 }

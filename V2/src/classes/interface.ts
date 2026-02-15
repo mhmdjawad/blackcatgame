@@ -13,6 +13,7 @@ export class GameCanvasElement extends HTMLCanvasElement {
     drawCentered : (canvas : GameCanvasElement) => void = ()=>{};
     drawBottomCenter : (canvas : GameCanvasElement, offset :number) => void = ()=>{};
     drawRelative : (canvas : GameCanvasElement, center : Point) => void = ()=>{};
+    drawAt : (canvas : GameCanvasElement, center : Point) => void = ()=>{};
     constructor(){
         super();
     }

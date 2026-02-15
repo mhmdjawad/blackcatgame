@@ -5,6 +5,9 @@ export default class Point{
         this.x = pos.x;
         this.y = pos.y;
     }
+    moveBy(x:number,y:number){
+        return new Point({x:this.x + x,y:this.y + y});
+    }
     moveToward(p2 : Point,dist=1){
         var vx = this.x == p2.x ? 0 : this.x < p2.x ? dist : -dist;
         var vy = this.y == p2.y ? 0 : this.y < p2.y ? dist : -dist;
