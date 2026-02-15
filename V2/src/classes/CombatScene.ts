@@ -201,12 +201,17 @@ class ElementAttck{
     updateAndAttack(t=0,scene:CombatScene){
         scene.wave.enemies.forEach(en=>{
             if(en.center.distance(this.center) <= CELLSIZE/2){
-                en.life -= this.level;
-                this.life = 0;
-                return;
+                if(this.level > en.life){
+                    en.life = 0;
+                    this.level -= en.life;
+                }
+                else{
+                    en.life -= this.level;
+                    this.life = 0;
+                    return;
+                }
             }
         })
-        // this.life -= 1;
         this.center.x += this.speed;
         if(this.center.x > scene.game.canvasDim.w){
             this.life = 0;
@@ -419,7 +424,7 @@ export default class CombatScene{
         if(typelast == "mana"){
             this.player.AddMana(list.length);
             this.attacks.push(
-                new ElementAttck(typelast,MergeCalculator.calculateGain(list.length)/2,G.Point({
+                new ElementAttck(typelast,Math.floor(MergeCalculator.calculateGain(list.length)/2),G.Point({
                     x: this.catLoc.x,
                     y: this.catLoc.y
                 }
