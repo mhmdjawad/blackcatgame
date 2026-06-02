@@ -451,7 +451,7 @@ export default class CombatScene{
         this.handleMove(e);
     }
     handleEnd(e:any){
-        var result = this.getResultActionFromCollection();
+        this.getResultActionFromCollection();
         this.mergeGestures.mergestart = false;
         this.markedCenters = new Collection();
     }
@@ -526,19 +526,6 @@ export default class CombatScene{
             this.addAttack(result);
             return "attack";
         }
-        /* 
-        m mana
-        e element
-        m1m1 => m2
-        m1m1m1 => m4
-        e1e1 => e2
-        e1e1e1 => e4
-        m1e1 => attack with element lvl 1 at mana 1
-        m1e1e1 => attack with element lvl 2 at mana 1
-        m1e1e1e1 => attack with element lvl 4 at mana 1
-        */
-
-
     }
     addTile(level = 1){
         var last = this.markedCenters.objects.pop();
