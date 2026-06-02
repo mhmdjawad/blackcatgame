@@ -50,6 +50,9 @@ export default class G{
         c.drawRelative = (canvas : GameCanvasElement, center : Point) =>{
             c.ctx.drawImage(canvas,center.x -canvas.w/2, center.y -canvas.h /2);
         }
+        c.drawAt = (canvas : GameCanvasElement, center : Point) =>{
+            c.ctx.drawImage(canvas,center.x, center.y);
+        }
         return c;
     }
     static GenTable(rows = 0,cols = 0){
@@ -604,6 +607,35 @@ export default class G{
         }
         catch(e){
             return [color];
+        }
+    }
+    static coloredRect(w:number,h:number,color:string){
+        var canvas = G.makeCanvas(w,h);
+        canvas.fill(color);
+        return canvas;
+    }
+    static lerpColor(color1:string,color2:string,t = 0.5){
+        // linear interpolate between 2 colors by t (0-1)
+        try{
+            if(!color1 || !color2) return color1 || color2 || null;
+            let hex1 = color1.replace('#','').trim();
+            let hex2 = color2.replace('#','').trim();
+            if(hex1.length === 3) hex1 = hex1.split('').map(ch=>ch+ch).join('');
+            if(hex2.length === 3) hex2 = hex2.split('').map(ch=>ch+ch).join('');
+            if(hex1.length !== 6 || hex2.length !== 6) return t < 0.5 ? color1 : color2;
+            const r1 = parseInt(hex1.slice(0,2),16);
+            const g1 = parseInt(hex1.slice(2,4),16);
+            const b1 = parseInt(hex1.slice(4,6),16);
+            const r2 = parseInt(hex2.slice(0,2),16);
+            const g2 = parseInt(hex2.slice(2,4),16);
+            const b2 = parseInt(hex2.slice(4,6),16);
+            const r = Math.round(r1 + (r2 - r1) * t);
+            const g = Math.round(g1 + (g2 - g1) * t);
+            const b = Math.round(b1 + (b2 - b1) * t);
+            return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+        }
+        catch(e){
+            return t < 0.5 ? color1 : color2;
         }
     }
     static rand (a=1, b=0){ return b + (a-b)*Math.random();}
